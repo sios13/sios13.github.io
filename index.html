@@ -1,0 +1,91 @@
+---
+layout: default
+---
+
+<div class="home">
+
+    <div class="home-feature-post home-feature-post-1">
+        <div class="image">
+            <img src="images/{{ site.posts.last.image }}" alt="{{ site.posts.last.image-alt }}">
+        </div>
+        
+        <div class="text">
+            <span class="post-meta">{{ site.posts.last.date | date: "%b %-d, %Y" }}</span>
+            
+            <h2>
+                <a class="post-link" href="{{  site.posts.last.url | prepend: site.baseurl }}">{{ site.posts.last.title }}</a>
+            </h2>
+            
+            <p>{{ site.posts.last.excerpt }}</p>
+        </div>
+    </div>
+    
+    <div class="home-feature-post home-feature-post-3">
+        <div class="image">
+            <img src="images/{{ site.posts.last.image }}" alt="{{ site.posts.last.image-alt }}">
+        </div>
+        
+        <div class="text">
+            <span class="post-meta">{{ site.posts.last.date | date: "%b %-d, %Y" }}</span>
+            
+            <h2>
+                <a class="post-link" href="{{  site.posts.last.url | prepend: site.baseurl }}">{{ site.posts.last.title }}</a>
+            </h2>
+            
+            <p>{{ site.posts.last.excerpt }}</p>
+        </div>
+    </div>
+    
+    <div class="home-feature-post home-feature-post-3">
+        <div class="image">
+            <img src="images/{{ site.posts.last.image }}" alt="{{ site.posts.last.image-alt }}">
+        </div>
+        
+        <div class="text">
+            <span class="post-meta">{{ site.posts.last.date | date: "%b %-d, %Y" }}</span>
+            
+            <h2>
+                <a class="post-link" href="{{  site.posts.last.url | prepend: site.baseurl }}">{{ site.posts.last.title }}</a>
+            </h2>
+            
+            <p>{{ site.posts.last.excerpt }}</p>
+        </div>
+    </div>
+    
+    <div class="home-feature-post home-feature-post-3">
+        <div class="image">
+            <img src="images/{{ site.posts.last.image }}" alt="{{ site.posts.last.image-alt }}">
+        </div>
+        
+        <div class="text">
+            <span class="post-meta">{{ site.posts.last.date | date: "%b %-d, %Y" }}</span>
+            
+            <h2>
+                <a class="post-link" href="{{  site.posts.last.url | prepend: site.baseurl }}">{{ site.posts.last.title }}</a>
+            </h2>
+            
+            <p>{{ site.posts.last.excerpt | truncatewords:10 }}</p>
+        </div>
+    </div>
+
+    <!-- <h1 class="page-heading">Posts</h1> -->
+    <!--
+    <ul class="post-list">
+    {% for post in site.posts %}
+        <li>
+            <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
+
+            <h2>
+                <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+            </h2>
+            
+            <p>{{ post.excerpt }}</p>
+            
+            <img src="images/{{ post.image }}">
+        </li>
+    {% endfor %}
+    </ul>
+    -->
+    <!-- <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p> -->
+
+</div>
