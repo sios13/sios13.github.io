@@ -1,14 +1,14 @@
 /**
  * Site header
  */
-$header-height: 80px;
+$header-height: 100px;
 
 .site-header {
     border-top: 5px solid $grey-color-dark;
     // border-bottom: 10px solid $grey-color-light;
     min-height: $header-height;
 	
-	background-color:darkgreen;
+	background-color:rgb(112,146,190);
 	box-shadow:0 4px 15px 0px rgba(0,0,0,0.4);
 
     // Positioning context for the mobile navigation icon
@@ -28,17 +28,28 @@ $header-height: 80px;
     }
 }
 
+.site-logo {
+    display:block;
+    margin:60px auto;
+}
+
 .site-nav {
-    float: right;
-    line-height: $header-height;
+    line-height:80px;
+    text-align:center;
 
     .menu-icon {
         display: none;
     }
 
     .page-link {
-        color: $text-color;
+        color:rgb(240,244,248);
+        font-weight:bold;
+        text-transform:uppercase;
         line-height: $base-line-height;
+        
+        &:hover {
+            color:white;
+        }
 
         // Gaps between nav items, but not on the first one
         &:not(:first-child) {
@@ -209,7 +220,7 @@ $header-height: 80px;
 .home-feature-post {
     background-color:white;
     margin-top:$spacing-unit;
-	box-shadow: 0 3px 10px 0px rgba(0,0,0,0.6);
+	box-shadow: 0 3px 10px 0px rgba(0,0,0,0.3);
     
     > .image {
         
