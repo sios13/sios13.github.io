@@ -19,54 +19,26 @@ layout: default
             <p>{{ site.posts.last.excerpt }}</p>
         </div>
     </div>
-    
-    <div class="home-feature-post home-feature-post-3">
-        <div class="image">
-            <img src="images/{{ site.posts.last.image }}" alt="{{ site.posts.last.image-alt }}">
-        </div>
-        
-        <div class="text">
-            <span class="post-meta">{{ site.posts.last.date | date: "%b %-d, %Y" }}</span>
+    {% for post in site.posts %}
+        {% if post == site.posts.last %}
+            {% continue %}
+        {% endif %}
+        <div class="home-feature-post home-feature-post-3">
+            <div class="image">
+                <img src="images/{{ site.posts.last.image }}" alt="{{ site.posts.last.image-alt }}">
+            </div>
             
-            <h2>
-                <a class="post-link" href="{{  site.posts.last.url | prepend: site.baseurl }}">{{ site.posts.last.title }}</a>
-            </h2>
-            
-            <p>{{ site.posts.last.excerpt }}</p>
+            <div class="text">
+                <span class="post-meta">{{ site.posts.last.date | date: "%b %-d, %Y" }}</span>
+                
+                <h2>
+                    <a class="post-link" href="{{  site.posts.last.url | prepend: site.baseurl }}">{{ site.posts.last.title }}</a>
+                </h2>
+                
+                <p>{{ site.posts.last.excerpt | truncatewords:30 }}</p>
+            </div>
         </div>
-    </div>
-    
-    <div class="home-feature-post home-feature-post-3">
-        <div class="image">
-            <img src="images/{{ site.posts.last.image }}" alt="{{ site.posts.last.image-alt }}">
-        </div>
-        
-        <div class="text">
-            <span class="post-meta">{{ site.posts.last.date | date: "%b %-d, %Y" }}</span>
-            
-            <h2>
-                <a class="post-link" href="{{  site.posts.last.url | prepend: site.baseurl }}">{{ site.posts.last.title }}</a>
-            </h2>
-            
-            <p>{{ site.posts.last.excerpt }}</p>
-        </div>
-    </div>
-    
-    <div class="home-feature-post home-feature-post-3">
-        <div class="image">
-            <img src="images/{{ site.posts.last.image }}" alt="{{ site.posts.last.image-alt }}">
-        </div>
-        
-        <div class="text">
-            <span class="post-meta">{{ site.posts.last.date | date: "%b %-d, %Y" }}</span>
-            
-            <h2>
-                <a class="post-link" href="{{  site.posts.last.url | prepend: site.baseurl }}">{{ site.posts.last.title }}</a>
-            </h2>
-            
-            <p>{{ site.posts.last.excerpt | truncatewords:10 }}</p>
-        </div>
-    </div>
+    {% endfor %}
 
     <!-- <h1 class="page-heading">Posts</h1> -->
     <!--
