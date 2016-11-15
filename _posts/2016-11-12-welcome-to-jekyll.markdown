@@ -1,7 +1,7 @@
 ---
 layout: post
-title:  "Welcome to Jekyll!"
-date:   2016-11-11 14:37:30
+title:  "En webbplats skapad med Jekyll"
+date:   2016-11-15 14:37:30
 categories: jekyll update
 author: simon österdahl
 image: placeholder-image.png

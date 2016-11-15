@@ -11,3 +11,17 @@ github_username: sios13
 
 # Build settings
 markdown: kramdown
+
+months:
+    - Januari
+    - Februari
+    - Mars
+    - April
+    - Maj
+    - Juni
+    - Juil
+    - Augusti
+    - September
+    - Oktober
+    - November
+    - December

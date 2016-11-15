@@ -3,14 +3,26 @@ layout: default
 ---
 
 <div class="home">
-
+<!--
+    {% assign post = site.posts.last %}
     <div class="home-feature-post home-feature-post-1">
         <div class="image">
             <img src="images/{{ site.posts.last.image }}" alt="{{ site.posts.last.image-alt }}">
         </div>
         
         <div class="text">
-            <span class="post-meta">{{ site.posts.last.date | date: "%b %-d, %Y" }}</span>
+            <span class="post-meta">
+                {% if post.date %}
+                    {{ post.date | date: "%-d" }}
+                    {% assign monthIndex = post.date | date: "%-m" | minus: 1 %}
+                    {{ site.months[monthIndex] }}
+                    {{ post.date | date: "%Y" }}
+                {% endif %}
+                
+                {% if post.author %}
+                    • {{ post.author }}
+                {% endif %}
+            </span>
             
             <h2>
                 <a class="post-link" href="{{  site.posts.last.url | prepend: site.baseurl }}">{{ site.posts.last.title }}</a>
@@ -19,23 +31,32 @@ layout: default
             <p>{{ site.posts.last.excerpt }}</p>
         </div>
     </div>
+-->
     {% for post in site.posts %}
-        {% if post == site.posts.last %}
-            {% continue %}
-        {% endif %}
-        <div class="home-feature-post home-feature-post-3">
+        <div class="home-feature-post {% if post == site.posts.first %}home-feature-post-1{% else %}home-feature-post-3{% endif %}">
             <div class="image">
-                <img src="images/{{ site.posts.last.image }}" alt="{{ site.posts.last.image-alt }}">
+                <img src="images/{{ post.image }}" alt="{{ post.image-alt }}">
             </div>
             
             <div class="text">
-                <span class="post-meta">{{ site.posts.last.date | date: "%b %-d, %Y" }}</span>
+                <span class="post-meta">
+                    {% if post.date %}
+                        {{ post.date | date: "%-d" }}
+                        {% assign monthIndex = post.date | date: "%-m" | minus: 1 %}
+                        {{ site.months[monthIndex] }}
+                        {{ post.date | date: "%Y" }}
+                    {% endif %}
+                    
+                    {% if post.author %}
+                        • {{ post.author }}
+                    {% endif %}
+                </span>
                 
                 <h2>
-                    <a class="post-link" href="{{  site.posts.last.url | prepend: site.baseurl }}">{{ site.posts.last.title }}</a>
+                    <a class="post-link" href="{{  post.url | prepend: site.baseurl }}">{{ post.title }}</a>
                 </h2>
                 
-                <p>{{ site.posts.last.excerpt | truncatewords:30 }}</p>
+                <p>{{ post.excerpt | truncatewords:30 }}</p>
             </div>
         </div>
     {% endfor %}
