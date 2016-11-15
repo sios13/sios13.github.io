@@ -53,10 +53,14 @@ layout: default
                 </span>
                 
                 <h2>
-                    <a class="post-link" href="{{  post.url | prepend: site.baseurl }}">{{ post.title }}</a>
+                    <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
                 </h2>
                 
-                <p>{{ post.excerpt | truncatewords:30 }}</p>
+                {% if post == site.posts.first %}
+                    <p>{{ post.excerpt }}</p>
+                {% else %}
+                    <p>{{ post.excerpt | truncatewords:30 }}</p>
+                {% endif %}
             </div>
         </div>
     {% endfor %}
