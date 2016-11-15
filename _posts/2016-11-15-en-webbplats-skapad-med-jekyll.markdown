@@ -2,7 +2,7 @@
 layout: post
 title:  "En webbplats skapad med Jekyll"
 date:   2016-11-15 14:37:30
-author: simon österdahl
+author: Simon Österdahl
 image: jekyll.png
 image-alt: Bild med text Jekyll
 ---
