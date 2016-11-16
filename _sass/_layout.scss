@@ -31,6 +31,14 @@ $header-height: 100px;
 .site-logo {
     display:block;
     margin:50px auto;
+    
+    @include media-query($on-laptop) {
+        margin:35px auto;
+    }
+    
+    @include media-query($on-palm) {
+        margin:20px auto;
+    }
 }
 
 .site-nav {
@@ -54,50 +62,6 @@ $header-height: 100px;
         // Gaps between nav items, but not on the first one
         &:not(:first-child) {
             margin-left: 20px;
-        }
-    }
-
-    @include media-query($on-palm) {
-        position: absolute;
-        top: 9px;
-        right: 30px;
-        background-color: $background-color;
-        border: 1px solid $grey-color-light;
-        border-radius: 5px;
-        text-align: right;
-
-        .menu-icon {
-            display: block;
-            float: right;
-            width: 36px;
-            height: 26px;
-            line-height: 0;
-            padding-top: 10px;
-            text-align: center;
-
-            > svg {
-                width: 18px;
-                height: 15px;
-
-                path {
-                    fill: $grey-color-dark;
-                }
-            }
-        }
-
-        .trigger {
-            clear: both;
-            display: none;
-        }
-
-        &:hover .trigger {
-            display: block;
-            padding-bottom: 5px;
-        }
-
-        .page-link {
-            display: block;
-            padding: 5px 10px;
         }
     }
 }
@@ -219,7 +183,6 @@ $header-height: 100px;
  */
 .wrapper--page-content {
 	padding:0;
-	margin-top:$spacing-unit;
 	margin-bottom:$spacing-unit;
 }
 
@@ -229,6 +192,7 @@ $header-height: 100px;
 	box-shadow: 0 3px 10px 0px rgba(0,0,0,0.3);
     
     > .image {
+        margin:0 auto;
         
         img {
             width:100%;
@@ -261,7 +225,7 @@ $header-height: 100px;
     width:calc(33.333% - 20px);
 
 	> .image {
-        
+    
 	}
 	
 	> .text {
@@ -273,13 +237,62 @@ $header-height: 100px;
     margin-right:0;
 }
 
+@include media-query($on-laptop) {
+    .home-feature-post {
+        height:auto;
+        margin-top:$spacing-unit/2;
+        margin-right:0px;
+        
+        > .image {
+            float:none;
+            width:80%;
+            max-width:500px;
+            margin:0 auto;
+        }
+        
+        > .text {
+            float:none;
+            width:calc(100% - 20px);
+            height:auto;
+        }
+    }
+    
+    .home-feature-post-3 {
+        width:calc(50% - 8px);
+    }
+
+    .home-feature-post-3:nth-child(3n+1) {
+        margin-right:0px;
+    }
+
+    .home-feature-post-3:nth-child(2n) {
+        margin-right:$spacing-unit/2;
+    }
+}
+
+@include media-query($on-palm) {
+    .home-feature-post {
+        width:100%;
+        margin-right:0;
+    }
+    
+    .home-feature-post-1 {
+        
+    }
+    
+    .home-feature-post-1 {
+        > .image {
+        }
+    }
+}
+
 
 
 /**
  * Posts
  */
 .post {
-    margin:0 70px;
+    margin-top:$spacing-unit;
     padding:$spacing-unit;
     background-color:white;
     box-shadow: 0 3px 10px 0px rgba(0,0,0,0.3);
@@ -325,4 +338,8 @@ $header-height: 100px;
             font-size: 18px;
         }
     }
+}
+
+.post-comments {
+    margin-top:50px;
 }
