@@ -5,6 +5,7 @@ date:   2016-11-15 14:37:30
 author: Simon Österdahl
 image: jekyll.png
 image-alt: Bild med text Jekyll
+comments: true
 ---
 Denna webbplats har skapats med Jekyll.
 
