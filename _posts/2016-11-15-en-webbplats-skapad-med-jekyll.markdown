@@ -7,6 +7,8 @@ image: jekyll.png
 image-alt: Bild med text Jekyll
 comments: true
 ---
-Denna webbplats har skapats med Jekyll.
+Denna webbplats har skapats med Jekyll. Jekyll är en "static site generator".
 
-Jekyll är en så kallad "static site generator". Jekyll är ett verktyg som genererar en webbplats
+När man skapar en traditionell webbsida upptäcker man snabbt att man upprepar sig ofta. Exemeplvis är webbplatser ofta uppbyggda så att alla webbsidor har en gemensam header och footer. Genom att använda "static site generators" kan man undvika detta problem genom att skapa en header-fil och footer-fil som sedan inkluderas i alla webbsidor.
+
+Static site generator passar bra för mindre webbplatser. Sidorna som genereras är helt statiska, vilket kan vara en fördel ur säkerhetssynpunkt, men vill man skapa en dynamisk webbplats får man skapa webbplatsen på ett annat sätt.
