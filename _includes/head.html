@@ -10,4 +10,13 @@
     <link rel="canonical" href="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
     
     <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+    
+    <link rel="author" href="humans.txt">
+    
+    <!-- OPEN GRAPH -->
+    <meta property="og:title" content="{{ post.title }}">
+    <meta property="og:url" content="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
+    <meta property="og:description" content="{{ post.content }}">
+    <meta property="og:image" content="{{ post.image }}">
+    <meta property="og:type" content="article">
 </head>
