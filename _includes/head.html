@@ -14,9 +14,25 @@
     <link rel="author" href="humans.txt">
     
     <!-- OPEN GRAPH -->
-    <meta property="og:title" content="{{ post.title }}">
-    <meta property="og:url" content="{{ page.url | replace:'index.html','' | prepend: site.baseurl | prepend: site.url }}">
-    <meta property="og:description" content="{{ post.content }}">
-    <meta property="og:image" content="{{ post.image }}">
+    {% if page.title %}
+        <meta property="og:title" content="{{ page.title }}">
+    {% else %}
+        <meta property="og:title" content="sios13">
+    {% endif %}
+    
+    <meta property="og:url" content="{{ site.url }}">
+    
+    {% if page.id %}
+        <meta property="og:description" content="{{ page.content }}">
+    {% else %}
+        <meta property="og:description" content="{{ site.description }}">
+    {% endif %}
+    
+    {% if page.image %}
+        <meta property="og:image" content="{{ site.url }}/images/{{ page.image }}">
+    {% else %}
+        <meta property="og:image" content="{{ site.url }}/images/logo.png">
+    {% endif %}
+    
     <meta property="og:type" content="article">
 </head>
