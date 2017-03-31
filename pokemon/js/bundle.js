@@ -294,8 +294,8 @@ function getMap(mapName) {
         return startMap();
     }
 
-    if (mapName === "coolMap") {
-        return coolMap();
+    if (mapName === "house1Map") {
+        return house1Map();
     }
 }
 
@@ -355,7 +355,7 @@ function startMap() {
     let layer1Src = "img/map1layer1.png";
     let layer2Src = "img/map1layer2.png";
 
-    let audioSrc = "audio/hehe.mp3";
+    let audioSrc = "audio/music1.mp3";
 
     let map = new Map(x, y, collisionMap, gridSize, layer1Src, layer2Src, audioSrc);
 
@@ -365,7 +365,7 @@ function startMap() {
                 map.attachEvent(x, y, {
                     id: 2,
                     data: {
-                        mapName: "coolMap",
+                        mapName: "house1Map",
                         spawnX: 10*32,
                         spawnY: 8*32
                     }
@@ -377,7 +377,7 @@ function startMap() {
     return map;
 }
 
-function coolMap() {
+function house1Map() {
     let x = 0;
     let y = 0;
 
@@ -403,7 +403,7 @@ function coolMap() {
     let layer1Src = "img/house1layer1.png";
     let layer2Src = "img/house1layer2.png";
 
-    let audioSrc = "audio/hehe.mp3";
+    let audioSrc = "audio/music2.mp3";
 
     let map = new Map(x, y, collisionMap, gridSize, layer1Src, layer2Src, audioSrc);
 
