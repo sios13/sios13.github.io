@@ -149,23 +149,8 @@ Entity.prototype._checkGrid = function(game) {
 
 Entity.prototype.update = function(game) {
     if (game.listeners.isMousedown) {
-<<<<<<< HEAD
         // Use the mouse position to determine the entity speed
         this._setSpeed(game);
-=======
-        // Position
-        let deltaX = game.mousePositionX - this.mapX - this.width/2;
-        let deltaY = game.mousePositionY - this.mapY - this.height/2;
-
-        let distance = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
-
-        if (distance < 5) {
-            return;
-        }
-
-        this.speedX = deltaX/distance*this.speed;
-        this.speedY = deltaY/distance*this.speed;
->>>>>>> e0bf8033a78537f35c6ac74b6370b680f2f33a70
 
         // Use the speed to determine the direction
         this._setDirection();
@@ -250,11 +235,6 @@ Game.prototype.isLoaded = function() {
     return false;
 }
 
-Game.prototype.isLoading = function() {
-
-    return false;
-}
-
 Game.prototype.startGame = function() {
     require("./listeners.js").addListeners(this);
 
@@ -269,20 +249,16 @@ Game.prototype.startGame = function() {
     }
 
     let update = () => {
-<<<<<<< HEAD
         // Do not update while system is loading
         if (!this.isLoaded()) {
             return;
         }
 
-=======
->>>>>>> e0bf8033a78537f35c6ac74b6370b680f2f33a70
         // Update coolguy
         this.coolguy.update(this);
 
         // Update map
         this.map.update(this);
-<<<<<<< HEAD
 
         // if cool guy has entered a new grid -> check for events on that grid
         if (this.coolguy.newGrid) {
@@ -290,11 +266,6 @@ Game.prototype.startGame = function() {
 
             this.coolguy.newGrid = false;
         }
-=======
-
-        // Check for events (depending on where coolguy is standing)
-        this._checkEvents(this.coolguy.col, this.coolguy.row);
->>>>>>> e0bf8033a78537f35c6ac74b6370b680f2f33a70
     }
 
     let render = () => {
@@ -334,13 +305,8 @@ Game.prototype._checkEvents = function(col, row) {
     // get event on position
     let event = this.map.getEvent(col, row);
 
-<<<<<<< HEAD
     // if there is no event -> exit
     if (typeof event !== "object") {
-=======
-    // if col or row is not set -> exit
-    if (col === null || row === null) {
->>>>>>> e0bf8033a78537f35c6ac74b6370b680f2f33a70
         return;
     }
 
@@ -348,15 +314,6 @@ Game.prototype._checkEvents = function(col, row) {
     if (event.id === 2) {
         this.loadedTick = null;
 
-<<<<<<< HEAD
-=======
-    if (typeof event !== "object") {
-        return;
-    }
-
-    // if event id is 2 -> change map! teleport!
-    if (event.id === 2) {
->>>>>>> e0bf8033a78537f35c6ac74b6370b680f2f33a70
         this.map.destroy();
 
         this.map = MapInitializer.getMap(event.data.mapName);
@@ -392,25 +349,15 @@ function Map(x, y, collisionMap, gridSize, layer1Src, layer2Src, audioSrc, tiles
 
     this.gridSize = gridSize;
 
-<<<<<<< HEAD
     // this.isLoading = true;
-=======
-    this.isLoading = true;
->>>>>>> e0bf8033a78537f35c6ac74b6370b680f2f33a70
 
     this.tickCounter = 0;
 
     this.loadCounter = 0;
 
-<<<<<<< HEAD
     this.loadCounterFinish = 3;
 
     function loadEvent() {this.loadCounter += 1;}
-=======
-    function loadEvent() {
-        this.loadCounter += 1;
-    }
->>>>>>> e0bf8033a78537f35c6ac74b6370b680f2f33a70
 
     this.layer1Image = new Image();
     this.layer1Image.addEventListener("load", loadEvent.bind(this));
@@ -425,7 +372,6 @@ function Map(x, y, collisionMap, gridSize, layer1Src, layer2Src, audioSrc, tiles
     this.audio.loop = true;
     this.audio.play();
 
-<<<<<<< HEAD
     this.tiles = tiles;
 }
 
@@ -438,10 +384,6 @@ Map.prototype.isLoaded = function() {
     }
 
     return false;
-=======
-    // The tick at which this map was born and fully loaded
-    // this.spawnTick = null;
->>>>>>> e0bf8033a78537f35c6ac74b6370b680f2f33a70
 }
 
 Map.prototype.attachEvent = function(col, row, event) {
@@ -453,7 +395,6 @@ Map.prototype.getEvent = function(col, row) {
 }
 
 Map.prototype.update = function(game) {
-<<<<<<< HEAD
     this.tickCounter += 1;
 
     // Update map position
@@ -468,18 +409,6 @@ Map.prototype.update = function(game) {
 Map.prototype.renderTiles = function(context) {
     for (let i = 0; i < this.tiles.length; i++) {
         this.tiles[i].render(context, this.x, this.y);
-=======
-    if (this.loadCounter === 3) {
-        this.isLoading = false;
-    }
-
-    if (!this.isLoading) {
-        this.tickCounter += 1;
-
-        // Update map position
-        this.x = game.coolguy.mapX - game.coolguy.x;
-        this.y = game.coolguy.mapY - game.coolguy.y;
->>>>>>> e0bf8033a78537f35c6ac74b6370b680f2f33a70
     }
 }
 
@@ -493,11 +422,6 @@ Map.prototype.render = function(context) {
             }
         }
     }
-
-    context.beginPath();
-    context.fillStyle = "rgba(0, 0, 0, " + (1 - this.tickCounter/20) + ")";
-    context.fillRect(0, 0, 10000, 10000);
-    context.stroke();
 }
 
 Map.prototype.renderLayer1 = function(context) {
