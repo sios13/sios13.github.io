@@ -1,5 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-const Scenario = require("./Scenario.js");
 const Tile = require("./Tile.js");
 
 function Battle(settings) {
@@ -18,7 +17,7 @@ function Battle(settings) {
 
     this.player = {
         name: "player",
-        x: 0,
+        x: 1024,
         y: 100,
         image: new Tile({
             renderCol: 0,
@@ -33,7 +32,8 @@ function Battle(settings) {
             numberOfFrames: 87,
             updateFrequency: 1,
             src: "img/battle/player_monster.png",
-            loop: false
+            loop: false,
+            pause: true
         }),
         base_image: new Tile({
             renderWidth: 512,
@@ -50,45 +50,74 @@ function Battle(settings) {
         base_image: "img/battle/enemybaseField.png"
     };
 
-    // this.scenario = new Scenario();
+    this.bottombar = new Tile({renderWidth: 1028, renderHeight: 192, tileWidth: 512, tileHeight: 96, src: "img/battle/bottombar.png"});
+
+    this.textbox = new Tile({renderWidth: 481, renderHeight: 176, tileWidth: 244, tileHeight: 88, src: "img/battle/textbox.png"});
+
+    this.fightbtn = new Tile({renderWidth: 256, renderHeight: 92, tileWidth: 130, tileHeight: 46, src: "img/battle/fightbtn.png"});
+
+    this.bagbtn = new Tile({renderWidth: 256, renderHeight: 92, tileWidth: 130, tileHeight: 46, src: "img/battle/bagbtn.png"});
+
+    this.pokemonbtn = new Tile({renderWidth: 256, renderHeight: 92, tileWidth: 130, tileHeight: 46, src: "img/battle/pokemonbtn.png"});
+
+    this.runbtn = new Tile({renderWidth: 256, renderHeight: 92, tileWidth: 130, tileHeight: 46, src: "img/battle/runbtn.png"});
 }
 
 Battle.prototype._load = function() {
 
 }
 
-Battle.prototype.update = function(game) {
-    this.tick += 1;
+Battle.prototype.intro = function() {
+    // if intro is over -> exit
+    if (this.tick > 500) {
+        return;
+    }
 
-    this.player.image.update(game);
+    if (this.tick < 75) {
+        this.player.x -= 14;
+    }
 
-    if (this.tick === 200) {
+    if (this.tick === 75) {
         this.player.image.pause = false;
     }
 
-    if (this.tick === 400) {
-        game.endBattle();
+    if (this.tick === 200) {
     }
+
+    if (this.tick === 300) {
+        // game.endBattle();
+    }
+}
+
+Battle.prototype.update = function(game) {
+    this.tick += 1;
+
+    this.intro();
+
+    this.player.image.update(game);
 }
 
 Battle.prototype.render = function(context) {
     this.background.render(context);
 
-    this.player.base_image.render(context, this.player.x, this.screenHeight - 175 - 64);
+    // Player
+    this.player.base_image.render(context, this.player.x, this.screenHeight - 192 - 64);
     this.player.image.render(context, this.player.x + 512/2 - this.player.image.renderWidth/2, this.player.y);
 
-    // context.drawImage(this.image, xInImage, yInImage, this.tileWidth, this.tileHeight, mapX + renderX, mapY + renderY, this.renderWidth, this.renderHeight);
+    // Bottom bar
+    this.bottombar.render(context, 0, this.screenHeight - 192);
 
-    // Draw white box at bottom
-    context.beginPath();
-    context.fillStyle = "rgba(255, 255, 255, 0.7)";
-    context.fillRect(0, this.screenHeight - 175, this.screenWidth, 175);
-    context.stroke();
+    this.textbox.render(context, 10, this.screenHeight - 192 + 10);
+
+    this.fightbtn.render(context, this.screenWidth*0.5 - 10, this.screenHeight - 192 + 10);
+    this.bagbtn.render(context, this.screenWidth*0.5 - 10 + 256, this.screenHeight - 192 + 10);
+    this.pokemonbtn.render(context, this.screenWidth*0.5 - 10, this.screenHeight - 192 + 10 + 92 - 8);
+    this.runbtn.render(context, this.screenWidth*0.5 - 10 + 256, this.screenHeight - 192 + 10 + 92 - 8);
 }
 
 module.exports = Battle;
 
-},{"./Scenario.js":6,"./Tile.js":7}],2:[function(require,module,exports){
+},{"./Tile.js":6}],2:[function(require,module,exports){
 const TileManager = require("./TileManager.js");
 
 function Entity(settings) {
@@ -322,7 +351,13 @@ Entity.prototype._checkEvents = function(game) {
     if (event.id === 2) {return game.changeMap(event);}
 
     // Grass!
-    if (event.id === 3) {return this.state = "grass"}
+    if (event.id === 3) {
+        event.data.tile.pause = false;
+
+        this.state = "grass";
+
+        return;
+    }
 
     // Water!
     if (event.id === 4) {return this.state = "water";}
@@ -394,7 +429,7 @@ Entity.prototype._setActiveTile = function() {
 Entity.prototype.update = function(game) {
     if (game.listeners.isMousedown) {
         if (this.state === "grass") {
-            game.startBattle("xD");
+            game.event("grass");
         }
 
         // Use the mouse position to determine the entity speed
@@ -446,7 +481,7 @@ Entity.prototype.render = function(context) {
 
 module.exports = Entity;
 
-},{"./TileManager.js":8}],3:[function(require,module,exports){
+},{"./TileManager.js":7}],3:[function(require,module,exports){
 const Entity = require("./Entity.js");
 const MapInitializer = require("./MapInitializer.js");
 const Battle = require("./Battle.js");
@@ -567,6 +602,12 @@ Game.prototype.startGame = function() {
     }
 };
 
+Game.prototype.event = function(eventname) {
+    if (eventname === "grass") {
+        this.startBattle("xD");
+    }
+}
+
 Game.prototype.changeMap = function(event) {
     this.loadedTick = null;
 
@@ -588,7 +629,7 @@ Game.prototype.endBattle = function() {
 
 module.exports = Game;
 
-},{"./Battle.js":1,"./Entity.js":2,"./MapInitializer.js":5,"./listeners.js":10}],4:[function(require,module,exports){
+},{"./Battle.js":1,"./Entity.js":2,"./MapInitializer.js":5,"./listeners.js":9}],4:[function(require,module,exports){
 function Map(x, y, collisionMap, gridSize, layer1Src, layer2Src, audioSrc, tiles) {
     this.x = x;
     this.y = y;
@@ -811,7 +852,11 @@ function startMap() {
             renderHeight: 32,
             tileWidth: 16,
             tileHeight: 16,
-            numberOfFrames: 1
+            offset: 16,
+            numberOfFrames: 4,
+            updateFrequency: 2,
+            loop: false,
+            pause: true
         }
     ]);
 
@@ -891,7 +936,7 @@ function startMap() {
         tileManager.getTile("grass", 11, 29, 0, 0),
         tileManager.getTile("grass", 9, 30, 0, 0),
         tileManager.getTile("grass", 10, 30, 0, 0),
-        tileManager.getTile("grass", 11, 30, 0, 0),
+        tileManager.getTile("grass", 11, 30, 0, 0)
     ];
 
     let map = new Map(x, y, collisionMap, gridSize, layer1Src, layer2Src, audioSrc, tiles);
@@ -910,9 +955,12 @@ function startMap() {
             }
 
             if (collisionMap[y][x] === 3) {
+                // Find the tile associated to the grid
+                let tile = tileManager.tiles.find(tile => tile.renderCol === x && tile.renderRow === y);
+
                 map.attachEvent(x, y, {
                     id: 3,
-                    data: {}
+                    data: {tile: tile}
                 });
             }
 
@@ -982,14 +1030,7 @@ module.exports = {
     getMap: getMap
 };
 
-},{"./Map.js":4,"./TileManager.js":8}],6:[function(require,module,exports){
-function Scenario() {
-
-}
-
-module.exports = Scenario;
-
-},{}],7:[function(require,module,exports){
+},{"./Map.js":4,"./TileManager.js":7}],6:[function(require,module,exports){
 function Tile(settings) {
     // renderCol, renderRow, renderWidth, renderHeight, spriteCol, spriteRow, tileWidth, tileHeight, offset, numberOfFrames, updateFrequency, image
     this.renderCol = settings.renderCol ? settings.renderCol : 0;
@@ -1003,25 +1044,25 @@ function Tile(settings) {
 
     this.tileWidth = settings.tileWidth;
     this.tileHeight = settings.tileHeight;
-    
+
     this.offset = settings.offset ? settings.offset : 0;
 
     this.numberOfFrames = settings.numberOfFrames ? settings.numberOfFrames : 1;
 
     this.updateFrequency = settings.updateFrequency ? settings.updateFrequency : 0;
 
-    this.loop = settings.loop === undefined ? true : settings.loop;
-
     this.image = new Image();
     this.image.src = settings.src;
+
+    this.loop = settings.loop === undefined ? true : settings.loop;
+
+    this.pause = settings.pause === undefined ? false : settings.pause;
+    // this.pause = false;
 
     // Animation
     this.animationCounter = 0;
 
     this.spriteOffset = 0;
-
-    // 
-    this.pause = false;
 }
 
 /**
@@ -1037,7 +1078,7 @@ Tile.prototype.isLoaded = function() {
 
 Tile.prototype.update = function(game) {
     // Dont update if animation is paused
-    if (this.pause) {
+    if (this.pause === true) {
         return;
     }
 
@@ -1050,10 +1091,9 @@ Tile.prototype.update = function(game) {
         this.animationCounter += 1;
 
         this.spriteOffset = this.offset * (this.animationCounter % this.numberOfFrames);
-    }
 
-    if (this.loop === false) {
-        if (this.animationCounter % this.numberOfFrames === 0) {
+        // If no looping and at the first frame of the animation -> pause animation
+        if (this.loop === false && this.animationCounter % this.numberOfFrames === 0) {
             this.pause = true;
         }
     }
@@ -1074,7 +1114,7 @@ Tile.prototype.render = function(context, mapX, mapY) {
 
 module.exports = Tile;
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 const Tile = require("./Tile.js");
 
 function TileManager(settings) {
@@ -1085,8 +1125,11 @@ function TileManager(settings) {
     this.tiles = [];
 }
 
+/**
+ * Return all initialized tiles
+ */
 TileManager.prototype.getAllTiles = function() {
-    return this.tiles
+    return this.tiles;
 }
 
 TileManager.prototype.addSettings = function(settings) {
@@ -1107,22 +1150,28 @@ TileManager.prototype.addSettings = function(settings) {
     }
 }
 
+/**
+ * Initialize and return a tile
+ * All initialized tiles are also saved in the tile manager!
+ */
 TileManager.prototype.getTile = function(identifier, renderCol, renderRow, spriteCol, spriteRow) {
     let settings = this.tilesSettings.find(x => x.identifier === identifier);
 
     let tile = new Tile({
-        renderCol: renderCol,                  // col where to render
-        renderRow: renderRow,                  // row where to render
-        renderWidth: settings.renderWidth,       // render width
-        renderHeight: settings.renderHeight,      // render height
-        spriteCol: spriteCol,                  // col of tile in spirte
-        spriteRow: spriteRow,                  // row of tile in sprite
-        tileWidth: settings.tileWidth,         // width of tile in sprite
-        tileHeight: settings.tileHeight,        // height of tile in sprite
-        offset: settings.offset,            // offset length
+        renderCol: renderCol,                       // col where to render
+        renderRow: renderRow,                       // row where to render
+        renderWidth: settings.renderWidth,          // render width
+        renderHeight: settings.renderHeight,        // render height
+        spriteCol: spriteCol,                       // col of tile in spirte
+        spriteRow: spriteRow,                       // row of tile in sprite
+        tileWidth: settings.tileWidth,              // width of tile in sprite
+        tileHeight: settings.tileHeight,            // height of tile in sprite
+        offset: settings.offset,                    // offset length
         numberOfFrames: settings.numberOfFrames,    // number of frames
-        updateFrequency: settings.updateFrequency,   // specifies how often to update (5 is every fifth tick, 2 is every other tick, 1 is every tick etc...)
-        src: settings.src              // sprite or sprites src
+        updateFrequency: settings.updateFrequency,  // specifies how often to update (5 is every fifth tick, 2 is every other tick, 1 is every tick etc...)
+        src: settings.src,                          // sprite or sprites src
+        loop: settings.loop,                        // loop
+        pause: settings.pause                       // pause
     });
 
     // All initialized tiles are also saved in the tile manager
@@ -1133,7 +1182,7 @@ TileManager.prototype.getTile = function(identifier, renderCol, renderRow, sprit
 
 module.exports = TileManager;
 
-},{"./Tile.js":7}],9:[function(require,module,exports){
+},{"./Tile.js":6}],8:[function(require,module,exports){
 let Game = require("./Game.js");
 
 // node_modules/.bin/browserify source/js/app.js > debug/js/bundle.js
@@ -1144,7 +1193,7 @@ window.addEventListener("load", function() {
     game.startGame();
 });
 
-},{"./Game.js":3}],10:[function(require,module,exports){
+},{"./Game.js":3}],9:[function(require,module,exports){
 function addListeners(game) {
     game.listeners = {};
 
@@ -1176,4 +1225,4 @@ module.exports = {
     addListeners: addListeners
 }
 
-},{}]},{},[9]);
+},{}]},{},[8]);
