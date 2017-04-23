@@ -1,14 +1,25 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-const Scenario = require("./Scenario.js");
 const Tile = require("./Tile.js");
 
 function Battle(settings) {
-    this.tick = 0;
+    this.tick = -1;
 
     this.screenWidth = 1024;
     this.screenHeight = 768;
+    
+    this.flash = new Tile({
+        renderWidth: 1024,
+        renderHeight: 768,
+        tileWidth: 1024,
+        tileHeight: 768,
+        alpha: 0,
+        src: "img/battle/flash.png"
+    });
+    this.flash.alpha = 0;
 
     this.background = new Tile({
+        renderX: -10000,
+        renderY: 0,
         renderWidth: this.screenWidth,
         renderHeight: this.screenHeight,
         tileWidth: 512,
@@ -18,11 +29,25 @@ function Battle(settings) {
 
     this.player = {
         name: "player",
-        x: 0,
-        y: 100,
-        image: new Tile({
-            renderCol: 0,
-            renderRow: 7,
+        player_tile: new Tile({
+            renderX: 1024 + 170,
+            renderY: 768 - 192 - 230,
+            renderWidth: 230,
+            renderHeight: 230,
+            spriteCol: 0,
+            spriteRow: 0,
+            tileWidth: 128,
+            tileHeight: 128,
+            offset: 128,
+            numberOfFrames: 5,
+            updateFrequency: 5,
+            src: "img/battle/player_back.png",
+            loop: false,
+            pause: true
+        }),
+        monster_tile: new Tile({
+            renderX: -10000,
+            renderY: 310,
             renderWidth: 350,
             renderHeight: 350,
             spriteCol: 0,
@@ -33,12 +58,15 @@ function Battle(settings) {
             numberOfFrames: 87,
             updateFrequency: 1,
             src: "img/battle/player_monster.png",
-            loop: false
+            loop: false,
+            pause: true
         }),
-        base_image: new Tile({
+        base_tile: new Tile({
+            renderX: 1024,
+            renderY: this.screenHeight - 192 - 64,
             renderWidth: 512,
             renderHeight: 64,
-            tileWidth: 512,
+            tileWidth: 408,
             tileHeight: 64,
             src: "img/battle/playerbaseFieldGrassEve.png"
         })
@@ -46,49 +74,307 @@ function Battle(settings) {
 
     this.enemy = {
         name: "HEJ",
-        image: "img/battle/enemy.png",
-        base_image: "img/battle/enemybaseField.png"
+        monster_tile: new Tile({
+            renderX: 0 - 512/2 - 350/2,
+            renderY: 75,
+            renderWidth: 350,
+            renderHeight: 350,
+            spriteCol: 0,
+            spriteRow: 0,
+            tileWidth: 85,
+            tileHeight: 85,
+            offset: 85,
+            numberOfFrames: 25,
+            updateFrequency: 1,
+            src: "img/battle/enemy_monster.png",
+            loop: false,
+            pause: true
+        }),
+        base_tile: new Tile({
+            renderX: 0 - 512,
+            renderY: 200,
+            renderWidth: 512,
+            renderHeight: 256,
+            tileWidth: 256,
+            tileHeight: 128,
+            src: "img/battle/enemybaseFieldGrassEve.png"
+        })
     };
 
-    // this.scenario = new Scenario();
+    this.ball = new Tile({
+        renderX: -500,
+        renderY: 410,
+        renderWidth: 48,
+        renderHeight: 48,
+        spriteCol: 0,
+        spriteRow: 0,
+        tileWidth: 32,
+        tileHeight: 32,
+        offset: 32,
+        numberOfFrames: 4,
+        updateFrequency: 3,
+        src: "img/battle/ball.png",
+        loop: true,
+        pause: false
+    });
+
+    this.bottombar = new Tile({renderX: -10000, renderY: this.screenHeight - 192, renderWidth: 1028, renderHeight: 192, tileWidth: 512, tileHeight: 96, src: "img/battle/bottombar.png"});
+
+    this.textbox = new Tile({renderX: -10000, renderY: this.screenHeight - 192 + 10, renderWidth: 481, renderHeight: 176, tileWidth: 244, tileHeight: 88, src: "img/battle/textbox.png"});
+
+    this.fightbtn = new Tile({
+        renderX: -10000,
+        renderY: this.screenHeight - 192 + 10,
+        renderWidth: 256,
+        renderHeight: 92,
+        tileWidth: 130,
+        tileHeight: 46,
+        offset: 130,
+        numberOfFrames: 2,
+        src: "img/battle/fightbtn.png",
+        loop: false,
+        pause: true
+    });
+
+    this.bagbtn = new Tile({
+        renderX: -10000,
+        renderY: this.screenHeight - 192 + 10,
+        renderWidth: 256,
+        renderHeight: 92,
+        tileWidth: 130,
+        tileHeight: 46,
+        offset: 130,
+        numberOfFrames: 2,
+        src: "img/battle/bagbtn.png",
+        loop: false,
+        pause: true
+    });
+
+    this.pokemonbtn = new Tile({
+        renderX: -10000,
+        renderY: this.screenHeight - 192 + 10 + 92 - 8,
+        renderWidth: 256,
+        renderHeight: 92,
+        tileWidth: 130,
+        tileHeight: 46,
+        offset: 130,
+        numberOfFrames: 2,
+        src: "img/battle/pokemonbtn.png",
+        loop: false,
+        pause: true
+    });
+
+    this.runbtn = new Tile({
+        renderX: -10000,
+        renderY: this.screenHeight - 192 + 10 + 92 - 8,
+        renderWidth: 256,
+        renderHeight: 92,
+        tileWidth: 130,
+        tileHeight: 46,
+        offset: 130,
+        numberOfFrames: 2,
+        src: "img/battle/runbtn.png",
+        loop: false,
+        pause: true
+    });
 }
 
-Battle.prototype._load = function() {
+Battle.prototype._playIntro = function() {
+    if (this.tick > 240) {
+        return;
+    }
 
+    if (this.tick >= 0 && this.tick < 5) {
+        this.flash.alpha += 0.20;
+    }
+    if (this.tick >= 5 && this.tick < 10) {
+        this.flash.alpha -= 0.20;
+    }
+
+    if (this.tick >= 10 && this.tick < 15) {
+        this.flash.alpha += 0.20;
+    }
+    if (this.tick >= 15 && this.tick < 20) {
+        this.flash.alpha -= 0.20;
+    }
+
+    if (this.tick >= 20 && this.tick < 25) {
+        this.flash.alpha += 0.20;
+    }
+    if (this.tick >= 25 && this.tick < 30) {
+        this.flash.alpha -= 0.20;
+    }
+
+    if (this.tick >= 45 && this.tick < 70) {
+        this.flash.alpha += 0.05;
+    }
+
+    if (this.tick === 70) {
+        // this.flash.alpha = 0;
+    }
+
+    // Transition is over -> set starting positions
+    if (this.tick === 90) {
+        this.background.renderX = 0;
+
+        this.bottombar.renderX = 0;
+        this.textbox.renderX = 10;
+
+        this.fightbtn.renderX = this.screenWidth/2 - 10;
+        this.bagbtn.renderX = this.screenWidth/2 - 10 + 256;
+        this.pokemonbtn.renderX = this.screenWidth/2 - 10;
+        this.runbtn.renderX = this.screenWidth/2 - 10 + 256;
+    }
+
+    if (this.tick > 90 && this.tick < 160) {
+        this.player.player_tile.renderX -= 15;
+        this.player.base_tile.renderX -= 15;
+
+        this.enemy.monster_tile.renderX += 15;
+        this.enemy.base_tile.renderX += 15;
+    }
+
+    if (this.tick === 165) {
+        this.enemy.monster_tile.pause = false;
+    }
+
+    if (this.tick === 200) {
+        this.player.player_tile.pause = false;
+    }
+
+    if (this.tick > 200 && this.tick < 240) {
+        this.player.player_tile.renderX -= 15;
+    }
+
+    if (this.tick === 210) {
+        this.ball.renderX = 150;
+    }
+
+    if (this.tick > 210 && this.tick < 240) {
+        this.ball.renderX += 5;
+        this.ball.renderY += 2;
+    }
+
+    if (this.tick === 240) {
+        this.ball.renderX = -500;
+        this.player.monster_tile.pause = false;
+        this.player.monster_tile.renderX = 512/2 - 350/2;
+    }
+}
+
+Battle.prototype._mouseEvents = function(game) {
+    let isInsideBox = function(x1, y1, x2, y2) {
+        let x = game.listeners.mousePositionX;
+        let y = game.listeners.mousePositionY;
+
+        if (x > x1 && y > y1 && x < x2 && y < y2) {
+            return true;
+        }
+
+        return false;
+    }
+
+    this.fightbtn.setFrame(0);
+    this.bagbtn.setFrame(0);
+    this.pokemonbtn.setFrame(0);
+    this.runbtn.setFrame(0);
+
+    if (isInsideBox(this.fightbtn.renderX, this.fightbtn.renderY, this.fightbtn.renderX + this.fightbtn.renderWidth, this.fightbtn.renderY + this.fightbtn.renderHeight)) {
+        this.fightbtn.setFrame(1);
+
+        if (game.listeners.click === true) {
+            console.log("fight");
+        }
+    }
+
+    if (isInsideBox(this.bagbtn.renderX, this.bagbtn.renderY, this.bagbtn.renderX + this.bagbtn.renderWidth, this.bagbtn.renderY + this.bagbtn.renderHeight)) {
+        this.bagbtn.setFrame(1);
+
+        if (game.listeners.click === true) {
+            console.log("bag");
+        }
+    }
+
+    if (isInsideBox(this.pokemonbtn.renderX, this.pokemonbtn.renderY, this.pokemonbtn.renderX + this.pokemonbtn.renderWidth, this.pokemonbtn.renderY + this.pokemonbtn.renderHeight)) {
+        this.pokemonbtn.setFrame(1);
+
+        if (game.listeners.click === true) {
+            console.log("pokemon");
+        }
+    }
+
+    if (isInsideBox(this.runbtn.renderX, this.runbtn.renderY, this.runbtn.renderX + this.runbtn.renderWidth, this.runbtn.renderY + this.runbtn.renderHeight)) {
+        this.runbtn.setFrame(1);
+
+        if (game.listeners.click === true) {
+            console.log("run");
+
+            game.endBattle();
+        }
+    }
 }
 
 Battle.prototype.update = function(game) {
     this.tick += 1;
 
-    this.player.image.update(game);
+    this._playIntro();
 
-    if (this.tick === 200) {
-        this.player.image.pause = false;
+    if (this.tick < 100) {
+        this.state = "transition";
+    } else {
+        this.state = "battle";
     }
 
-    if (this.tick === 400) {
-        game.endBattle();
-    }
+    this.player.monster_tile.update(game);
+    this.player.player_tile.update(game);
+
+    this.enemy.monster_tile.update(game);
+
+    this.ball.update(game);
+
+    this._mouseEvents(game);
 }
 
 Battle.prototype.render = function(context) {
-    this.background.render(context);
+    // if (this.state === "transition") {
 
-    this.player.base_image.render(context, this.player.x, this.screenHeight - 175 - 64);
-    this.player.image.render(context, this.player.x + 512/2 - this.player.image.renderWidth/2, this.player.y);
+    //     return;
+    // }
 
-    // context.drawImage(this.image, xInImage, yInImage, this.tileWidth, this.tileHeight, mapX + renderX, mapY + renderY, this.renderWidth, this.renderHeight);
+    // if (this.state === "battle") {
+        this.flash.render(context);
 
-    // Draw white box at bottom
-    context.beginPath();
-    context.fillStyle = "rgba(255, 255, 255, 0.7)";
-    context.fillRect(0, this.screenHeight - 175, this.screenWidth, 175);
-    context.stroke();
+        this.background.render(context);
+
+        // Enemy
+        this.enemy.base_tile.render(context);
+        this.enemy.monster_tile.render(context);
+
+        // Ball
+        this.ball.render(context);
+
+        // Player
+        this.player.base_tile.render(context);
+        this.player.player_tile.render(context);
+        this.player.monster_tile.render(context);
+
+        // Bottom bar
+        this.bottombar.render(context);
+
+        this.textbox.render(context);
+
+        this.fightbtn.render(context);
+        this.bagbtn.render(context);
+        this.pokemonbtn.render(context);
+        this.runbtn.render(context);
+
+        // return;
+    // }
 }
 
 module.exports = Battle;
 
-},{"./Scenario.js":6,"./Tile.js":7}],2:[function(require,module,exports){
+},{"./Tile.js":6}],2:[function(require,module,exports){
 const TileManager = require("./TileManager.js");
 
 function Entity(settings) {
@@ -121,7 +407,7 @@ function Entity(settings) {
 
     tileManager.addSettings({
         identifier: "playerWalk",
-        src: "img/character_walking.png",
+        src: "img/character7_walking.png",
         renderWidth: settings.renderWidth,
         renderHeight: settings.renderHeight,
         tileWidth: 32,
@@ -145,7 +431,7 @@ function Entity(settings) {
 
     tileManager.addSettings({
         identifier: "playerGrass",
-        src: "img/character_grass.png",
+        src: "img/character7_grass.png",
         renderWidth: settings.renderWidth,
         renderHeight: settings.renderHeight,
         tileWidth: 32,
@@ -203,8 +489,8 @@ Entity.prototype.isLoaded = function() {
 }
 
 Entity.prototype._setSpeed = function(game) {
-    let deltaX = game.mousePositionX - (this.canvasX + this.activeTile.renderWidth / 2);
-    let deltaY = game.mousePositionY - (this.canvasY + this.activeTile.renderHeight / 2);
+    let deltaX = game.listeners.mousePositionX - (this.canvasX + this.collisionSquare / 2);
+    let deltaY = game.listeners.mousePositionY - (this.canvasY + this.collisionSquare / 2);
 
     let distance = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
 
@@ -279,9 +565,10 @@ Entity.prototype._detectCollision = function(game) {
 
 /**
  * Updates the col and row position
+ * Returns true if entering a new grid, otherwise false
  * Sets newGrid to true if entering a new grid
  */
-Entity.prototype._checkGrid = function(game) {
+Entity.prototype._updateGridPosition = function(game) {
     let oldColumn = this.col;
     let oldRow = this.row;
 
@@ -292,23 +579,29 @@ Entity.prototype._checkGrid = function(game) {
     let newRow = Math.floor((y + this.speedY) / game.map.gridSize);
 
     if (oldColumn !== newColumn || oldRow !== newRow) {
-        this.newGrid = true;
-
         this.col = newColumn;
         this.row = newRow;
+
+        return true;
     }
+
+    return false;
 }
 
+/**
+ * Every grid on the map has an event!
+ * Check the events and set the state depending on event
+ */
 Entity.prototype._checkEvents = function(game) {
     // Only check for events if entered a new grid
-    if (this.newGrid === false) {
-        return;
-    }
+    // if (this.newGrid === false) {
+    //     return;
+    // }
 
-    this.newGrid = false;
+    // this.newGrid = false;
 
     // State is 'walking' by default
-    this.state = "walking";
+    // this.state = "walking";
 
     // Get event on position
     let event = game.map.getEvent(this.col, this.row);
@@ -318,14 +611,8 @@ Entity.prototype._checkEvents = function(game) {
         return;
     }
 
-    // Change map
-    if (event.id === 2) {return game.changeMap(event);}
-
-    // Grass!
-    if (event.id === 3) {return this.state = "grass"}
-
-    // Water!
-    if (event.id === 4) {return this.state = "water";}
+    // Emit the event!
+    game.event(event);
 }
 
 Entity.prototype._setActiveTile = function() {
@@ -392,10 +679,10 @@ Entity.prototype._setActiveTile = function() {
 }
 
 Entity.prototype.update = function(game) {
-    if (game.listeners.isMousedown) {
-        if (this.state === "grass") {
-            game.startBattle("xD");
-        }
+    if (game.listeners.mousedown) {
+        // if (this.state === "grass") {
+        //     game.event("grass");
+        // }
 
         // Use the mouse position to determine the entity speed
         this._setSpeed(game);
@@ -407,15 +694,21 @@ Entity.prototype.update = function(game) {
         // If collision is detected -> set the speed to 0
         this._detectCollision(game);
 
+        // Update entity position on the grid
         // Determine if entity is entering a new grid
-        this._checkGrid(game);
+        let newGrid = this._updateGridPosition(game);
 
         // Finally, add the speed to the position
         this.x += this.speedX;
         this.y += this.speedY;
 
+        // If entering a new grid -> check for events
+        if (newGrid === true) {
+            this._checkEvents(game);
+        }
+
         // Check for events
-        this._checkEvents(game);
+        // this._checkEvents(game);
 
         // Set the active tile depending on direction and events
         this._setActiveTile();
@@ -427,8 +720,7 @@ Entity.prototype.update = function(game) {
     }
 
     // Reset the animation of the tile
-    this.activeTile.animationCounter = 0;
-    this.activeTile.spriteOffset = 0;
+    this.activeTile.setFrame(0);
 }
 
 Entity.prototype.render = function(context) {
@@ -446,7 +738,7 @@ Entity.prototype.render = function(context) {
 
 module.exports = Entity;
 
-},{"./TileManager.js":8}],3:[function(require,module,exports){
+},{"./TileManager.js":7}],3:[function(require,module,exports){
 const Entity = require("./Entity.js");
 const MapInitializer = require("./MapInitializer.js");
 const Battle = require("./Battle.js");
@@ -455,7 +747,7 @@ function Game() {
     this.tickCounter = 0;
     this.framerate = 30;
 
-    this.canvas = document.querySelector("canvas");
+    this.canvas = document.querySelector(".canvas1");
     this.context = this.canvas.getContext("2d");
 
     this.map = MapInitializer.getMap("startMap");
@@ -508,28 +800,32 @@ Game.prototype.startGame = function() {
     }
 
     let update = () => {
-        if (this.battle !== null) {
-            return this.battle.update(this);
-        }
-
         // Do not update while system is loading
-        if (!this.isLoaded()) {
-            return;
+        if (!this.isLoaded()) {return;}
+
+        if (this.battle !== null)
+        {
+            this.battle.update(this);
+        }
+        else
+        {
+            // Update coolguy
+            this.coolguy.update(this);
+
+            // Update map
+            this.map.update(this);
         }
 
-        // Update coolguy
-        this.coolguy.update(this);
-
-        // Update map
-        this.map.update(this);
+        this.listeners.click = false;
+        this.listeners.mouseup = false;
     }
 
     let render = () => {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        if (this.battle !== null) {
-            return this.battle.render(this.context);
-        }
+        // if (this.battle !== null) {
+        //     return this.battle.render(this.context);
+        // }
 
         // Render 'loading screen' while system is loading
         if (!this.isLoaded()) {
@@ -564,18 +860,52 @@ Game.prototype.startGame = function() {
             this.context.fillRect(0, 0, 10000, 10000);
             this.context.stroke();
         }
+
+        if (this.battle !== null) {
+            this.battle.render(this.context);
+        }
     }
 };
 
-Game.prototype.changeMap = function(event) {
-    this.loadedTick = null;
+Game.prototype.event = function(event) {
+    // Walking!
+    if (event.id === 1) {
+        this.coolguy.state = "walking";
 
-    this.map.destroy();
+        return;
+    }
 
-    this.map = MapInitializer.getMap(event.data.mapName);
+    // Change map!
+    if (event.id === 2) {
+        this.loadedTick = null;
 
-    this.coolguy.x = event.data.spawnX;
-    this.coolguy.y = event.data.spawnY;
+        this.map.destroy();
+
+        this.map = MapInitializer.getMap(event.data.mapName);
+
+        this.coolguy.x = event.data.spawnX;
+        this.coolguy.y = event.data.spawnY;
+
+        return;
+    }
+
+    // Grass!
+    if (event.id === 3) {
+        this.coolguy.state = "grass";
+
+        event.data.tile.pause = false;
+
+        this.battle = new Battle();
+
+        return;
+    }
+
+    // Water!
+    if (event.id === 4) {
+        this.coolguy.state = "water";
+
+        return;
+    }
 }
 
 Game.prototype.startBattle = function(settings) {
@@ -588,7 +918,7 @@ Game.prototype.endBattle = function() {
 
 module.exports = Game;
 
-},{"./Battle.js":1,"./Entity.js":2,"./MapInitializer.js":5,"./listeners.js":10}],4:[function(require,module,exports){
+},{"./Battle.js":1,"./Entity.js":2,"./MapInitializer.js":5,"./listeners.js":9}],4:[function(require,module,exports){
 function Map(x, y, collisionMap, gridSize, layer1Src, layer2Src, audioSrc, tiles) {
     this.x = x;
     this.y = y;
@@ -806,12 +1136,16 @@ function startMap() {
         },
         {
             identifier: "grass",
-            src: "img/grass.png",
+            src: "img/grass2.png",
             renderWidth: 32,
             renderHeight: 32,
             tileWidth: 16,
             tileHeight: 16,
-            numberOfFrames: 1
+            offset: 16,
+            numberOfFrames: 2,
+            updateFrequency: 4,
+            loop: false,
+            pause: true
         }
     ]);
 
@@ -891,13 +1225,23 @@ function startMap() {
         tileManager.getTile("grass", 11, 29, 0, 0),
         tileManager.getTile("grass", 9, 30, 0, 0),
         tileManager.getTile("grass", 10, 30, 0, 0),
-        tileManager.getTile("grass", 11, 30, 0, 0),
+        tileManager.getTile("grass", 11, 30, 0, 0)
     ];
 
     let map = new Map(x, y, collisionMap, gridSize, layer1Src, layer2Src, audioSrc, tiles);
 
+    // Attach map events!
     for (let y = 0; y < collisionMap.length; y++) {
         for (let x = 0; x < collisionMap[y].length; x++) {
+            // Normal state!
+            if (collisionMap[y][x] === 0) {
+                map.attachEvent(x, y, {
+                    id: 1,
+                    data: {}
+                });
+            }
+
+            // Teleport!
             if (collisionMap[y][x] === 2) {
                 map.attachEvent(x, y, {
                     id: 2,
@@ -909,13 +1253,18 @@ function startMap() {
                 });
             }
 
+            // Grass!
             if (collisionMap[y][x] === 3) {
+                // Find the tile associated to the grid
+                let tile = tileManager.tiles.find(tile => tile.renderCol === x && tile.renderRow === y);
+
                 map.attachEvent(x, y, {
                     id: 3,
-                    data: {}
+                    data: {tile: tile}
                 });
             }
 
+            // Water! Swim!
             if (collisionMap[y][x] === 4) {
                 map.attachEvent(x, y, {
                     id: 4,
@@ -982,18 +1331,13 @@ module.exports = {
     getMap: getMap
 };
 
-},{"./Map.js":4,"./TileManager.js":8}],6:[function(require,module,exports){
-function Scenario() {
-
-}
-
-module.exports = Scenario;
-
-},{}],7:[function(require,module,exports){
+},{"./Map.js":4,"./TileManager.js":7}],6:[function(require,module,exports){
 function Tile(settings) {
-    // renderCol, renderRow, renderWidth, renderHeight, spriteCol, spriteRow, tileWidth, tileHeight, offset, numberOfFrames, updateFrequency, image
     this.renderCol = settings.renderCol ? settings.renderCol : 0;
     this.renderRow = settings.renderRow ? settings.renderRow : 0;
+
+    this.renderX = settings.renderX ? settings.renderX : 0;
+    this.renderY = settings.renderY ? settings.renderY : 0;
 
     this.renderWidth = settings.renderWidth;
     this.renderHeight = settings.renderHeight;
@@ -1003,25 +1347,26 @@ function Tile(settings) {
 
     this.tileWidth = settings.tileWidth;
     this.tileHeight = settings.tileHeight;
-    
+
     this.offset = settings.offset ? settings.offset : 0;
 
     this.numberOfFrames = settings.numberOfFrames ? settings.numberOfFrames : 1;
 
-    this.updateFrequency = settings.updateFrequency ? settings.updateFrequency : 0;
-
-    this.loop = settings.loop === undefined ? true : settings.loop;
+    this.updateFrequency = settings.updateFrequency ? settings.updateFrequency : null;
 
     this.image = new Image();
     this.image.src = settings.src;
+
+    this.loop = settings.loop === undefined ? true : settings.loop;
+
+    this.pause = settings.pause === undefined ? false : settings.pause;
+
+    this.alpha = settings.alpha ? settings.alpha : 1;
 
     // Animation
     this.animationCounter = 0;
 
     this.spriteOffset = 0;
-
-    // 
-    this.pause = false;
 }
 
 /**
@@ -1035,9 +1380,14 @@ Tile.prototype.isLoaded = function() {
     return false;
 }
 
+Tile.prototype.setFrame = function(framenumber) {
+    this.animationCounter = framenumber;
+    this.spriteOffset = framenumber * this.offset;
+}
+
 Tile.prototype.update = function(game) {
     // Dont update if animation is paused
-    if (this.pause) {
+    if (this.pause === true) {
         return;
     }
 
@@ -1050,10 +1400,9 @@ Tile.prototype.update = function(game) {
         this.animationCounter += 1;
 
         this.spriteOffset = this.offset * (this.animationCounter % this.numberOfFrames);
-    }
 
-    if (this.loop === false) {
-        if (this.animationCounter % this.numberOfFrames === 0) {
+        // If no looping and at the first frame of the animation -> pause animation
+        if (this.loop === false && this.animationCounter % this.numberOfFrames === 0) {
             this.pause = true;
         }
     }
@@ -1066,15 +1415,32 @@ Tile.prototype.render = function(context, mapX, mapY) {
     let xInImage = this.spriteCol * this.tileWidth + this.spriteOffset;
     let yInImage = this.spriteRow * this.tileHeight;
 
-    let renderX = this.renderCol * 32; // Assuming game tile width is 32
-    let renderY = this.renderRow * 32; // Assuming game tile height is 32
+    let renderX = this.renderCol ? this.renderCol * 32 : this.renderX;
+    let renderY = this.renderRow ? this.renderRow * 32 : this.renderY;
 
-    context.drawImage(this.image, xInImage, yInImage, this.tileWidth, this.tileHeight, mapX + renderX, mapY + renderY, this.renderWidth, this.renderHeight);
+    context.save();
+
+    context.globalAlpha = this.alpha;
+
+    context.drawImage(
+        this.image,
+        xInImage,
+        yInImage,
+        this.tileWidth,
+        this.tileHeight,
+        mapX + renderX,
+        mapY + renderY,
+        this.renderWidth,
+        this.renderHeight
+    );
+
+    context.restore();
+    
 }
 
 module.exports = Tile;
 
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 const Tile = require("./Tile.js");
 
 function TileManager(settings) {
@@ -1085,8 +1451,11 @@ function TileManager(settings) {
     this.tiles = [];
 }
 
+/**
+ * Return all initialized tiles
+ */
 TileManager.prototype.getAllTiles = function() {
-    return this.tiles
+    return this.tiles;
 }
 
 TileManager.prototype.addSettings = function(settings) {
@@ -1107,22 +1476,28 @@ TileManager.prototype.addSettings = function(settings) {
     }
 }
 
+/**
+ * Initialize and return a tile
+ * All initialized tiles are also saved in the tile manager!
+ */
 TileManager.prototype.getTile = function(identifier, renderCol, renderRow, spriteCol, spriteRow) {
     let settings = this.tilesSettings.find(x => x.identifier === identifier);
 
     let tile = new Tile({
-        renderCol: renderCol,                  // col where to render
-        renderRow: renderRow,                  // row where to render
-        renderWidth: settings.renderWidth,       // render width
-        renderHeight: settings.renderHeight,      // render height
-        spriteCol: spriteCol,                  // col of tile in spirte
-        spriteRow: spriteRow,                  // row of tile in sprite
-        tileWidth: settings.tileWidth,         // width of tile in sprite
-        tileHeight: settings.tileHeight,        // height of tile in sprite
-        offset: settings.offset,            // offset length
+        renderCol: renderCol,                       // col where to render
+        renderRow: renderRow,                       // row where to render
+        renderWidth: settings.renderWidth,          // render width
+        renderHeight: settings.renderHeight,        // render height
+        spriteCol: spriteCol,                       // col of tile in spirte
+        spriteRow: spriteRow,                       // row of tile in sprite
+        tileWidth: settings.tileWidth,              // width of tile in sprite
+        tileHeight: settings.tileHeight,            // height of tile in sprite
+        offset: settings.offset,                    // offset length
         numberOfFrames: settings.numberOfFrames,    // number of frames
-        updateFrequency: settings.updateFrequency,   // specifies how often to update (5 is every fifth tick, 2 is every other tick, 1 is every tick etc...)
-        src: settings.src              // sprite or sprites src
+        updateFrequency: settings.updateFrequency,  // specifies how often to update (5 is every fifth tick, 2 is every other tick, 1 is every tick etc...)
+        src: settings.src,                          // sprite or sprites src
+        loop: settings.loop,                        // loop
+        pause: settings.pause                       // pause
     });
 
     // All initialized tiles are also saved in the tile manager
@@ -1133,7 +1508,7 @@ TileManager.prototype.getTile = function(identifier, renderCol, renderRow, sprit
 
 module.exports = TileManager;
 
-},{"./Tile.js":7}],9:[function(require,module,exports){
+},{"./Tile.js":6}],8:[function(require,module,exports){
 let Game = require("./Game.js");
 
 // node_modules/.bin/browserify source/js/app.js > debug/js/bundle.js
@@ -1144,27 +1519,37 @@ window.addEventListener("load", function() {
     game.startGame();
 });
 
-},{"./Game.js":3}],10:[function(require,module,exports){
+},{"./Game.js":3}],9:[function(require,module,exports){
 function addListeners(game) {
     game.listeners = {};
 
-    game.canvas.addEventListener("mousedown", function(event) {
-        game.listeners.isMousedown = true;
+    game.canvas.addEventListener("click", function(event) {
+        game.listeners.click = true;
+    });
 
-        game.listeners.mousePositionX = event.pageX;
-        game.listeners.mousePositionY = event.pageY;
+    game.canvas.addEventListener("mousedown", function(event) {
+        game.listeners.mousedown = true;
+
+        let canvasRect = game.canvas.getBoundingClientRect();
+
+        game.listeners.mousePositionX = event.clientX - canvasRect.left;
+        game.listeners.mousePositionY = event.clientY - canvasRect.top;
     });
 
     game.canvas.addEventListener("mousemove", function(event) {
-        game.listeners.isMousemove = true;
+        game.listeners.mousemove = true;
 
-        game.mousePositionX = event.pageX;
-        game.mousePositionY = event.pageY;
+        let canvasRect = game.canvas.getBoundingClientRect();
+
+        game.listeners.mousePositionX = event.clientX - canvasRect.left;
+        game.listeners.mousePositionY = event.clientY - canvasRect.top;
     });
 
     window.addEventListener("mouseup", function(event) {
-        game.listeners.isMousedown = false;
-        game.listeners.isMousemove = false;
+        game.listeners.mouseup = true;
+
+        game.listeners.mousedown = false;
+        game.listeners.mousemove = false;
     });
 
     game.canvas.addEventListener("keydown", function(event) {
@@ -1176,4 +1561,4 @@ module.exports = {
     addListeners: addListeners
 }
 
-},{}]},{},[9]);
+},{}]},{},[8]);
