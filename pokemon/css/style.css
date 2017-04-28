@@ -1,11 +1,15 @@
+@font-face { font-family: Delicious; src: url("../font/pokemon_pixel_font.ttf"); } 
+
 body {margin:0;}
 
 canvas {
-    background-color:black;
     position:absolute;
     top:10;
+    left:10;
 }
 
-.canvas1 {left:10;}
+.worldCanvas {background-color:black;}
 
-.canvas2 {left:1050;}
+.battleCanvas {}
+
+.info {position:absolute; top:780; left:10;}

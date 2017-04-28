@@ -1,11 +1,24 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 const Tile = require("./Tile.js");
+const Conversation = require("./Conversation.js");
 
 function Battle(settings) {
     this.tick = -1;
 
+    this.state = "intro1";
+
     this.screenWidth = 1024;
     this.screenHeight = 768;
+
+    this.audio = new Audio("audio/pkmn-fajt.mp3");
+    this.audio.loop = true;
+    this.audio.play();
+
+    this.conversation = new Conversation({
+        backgroundSrc: "img/conversation/background_battle.png",
+        hidden: true,
+        nextable: false
+    });
     
     this.flash = new Tile({
         renderWidth: 1024,
@@ -29,6 +42,7 @@ function Battle(settings) {
 
     this.player = {
         name: "player",
+        audio: new Audio("audio/monster/130Cry.wav"),
         player_tile: new Tile({
             renderX: 1024 + 170,
             renderY: 768 - 192 - 230,
@@ -46,7 +60,7 @@ function Battle(settings) {
             pause: true
         }),
         monster_tile: new Tile({
-            renderX: -10000,
+            renderX: 512/2 - 350/2,
             renderY: 310,
             renderWidth: 350,
             renderHeight: 350,
@@ -57,7 +71,7 @@ function Battle(settings) {
             offset: 108,
             numberOfFrames: 87,
             updateFrequency: 1,
-            src: "img/battle/player_monster.png",
+            src: "img/battle/player_monster_shiny.png",
             loop: false,
             pause: true
         }),
@@ -71,9 +85,11 @@ function Battle(settings) {
             src: "img/battle/playerbaseFieldGrassEve.png"
         })
     };
+    this.player.monster_tile.alpha = 0;
 
     this.enemy = {
         name: "HEJ",
+        audio: new Audio("audio/monster/093Cry.wav"),
         monster_tile: new Tile({
             renderX: 0 - 512/2 - 350/2,
             renderY: 75,
@@ -120,10 +136,10 @@ function Battle(settings) {
 
     this.bottombar = new Tile({renderX: -10000, renderY: this.screenHeight - 192, renderWidth: 1028, renderHeight: 192, tileWidth: 512, tileHeight: 96, src: "img/battle/bottombar.png"});
 
-    this.textbox = new Tile({renderX: -10000, renderY: this.screenHeight - 192 + 10, renderWidth: 481, renderHeight: 176, tileWidth: 244, tileHeight: 88, src: "img/battle/textbox.png"});
+    // this.textbox = new Tile({renderX: -10000, renderY: this.screenHeight - 192 + 10, renderWidth: 481, renderHeight: 176, tileWidth: 244, tileHeight: 88, src: "img/battle/textbox.png"});
 
     this.fightbtn = new Tile({
-        renderX: -10000,
+        renderX: 514,
         renderY: this.screenHeight - 192 + 10,
         renderWidth: 256,
         renderHeight: 92,
@@ -137,7 +153,7 @@ function Battle(settings) {
     });
 
     this.bagbtn = new Tile({
-        renderX: -10000,
+        renderX: 770,
         renderY: this.screenHeight - 192 + 10,
         renderWidth: 256,
         renderHeight: 92,
@@ -151,7 +167,7 @@ function Battle(settings) {
     });
 
     this.pokemonbtn = new Tile({
-        renderX: -10000,
+        renderX: 514,
         renderY: this.screenHeight - 192 + 10 + 92 - 8,
         renderWidth: 256,
         renderHeight: 92,
@@ -165,7 +181,7 @@ function Battle(settings) {
     });
 
     this.runbtn = new Tile({
-        renderX: -10000,
+        renderX: 770,
         renderY: this.screenHeight - 192 + 10 + 92 - 8,
         renderWidth: 256,
         renderHeight: 92,
@@ -179,11 +195,7 @@ function Battle(settings) {
     });
 }
 
-Battle.prototype._playIntro = function() {
-    if (this.tick > 240) {
-        return;
-    }
-
+Battle.prototype._playIntro1 = function() {
     if (this.tick >= 0 && this.tick < 5) {
         this.flash.alpha += 0.20;
     }
@@ -205,20 +217,26 @@ Battle.prototype._playIntro = function() {
         this.flash.alpha -= 0.20;
     }
 
-    if (this.tick >= 45 && this.tick < 70) {
-        this.flash.alpha += 0.05;
+    if (this.tick >= 30 && this.tick < 35) {
+        this.flash.alpha += 0.20;
+    }
+    if (this.tick >= 35 && this.tick < 40) {
+        this.flash.alpha -= 0.20;
     }
 
-    if (this.tick === 70) {
-        // this.flash.alpha = 0;
+    if (this.tick >= 60 && this.tick < 70) {
+        this.flash.alpha += 0.10;
     }
 
     // Transition is over -> set starting positions
-    if (this.tick === 90) {
+    if (this.tick === 105) {
         this.background.renderX = 0;
 
         this.bottombar.renderX = 0;
-        this.textbox.renderX = 10;
+
+        this.conversation.hidden = false;
+
+        // this.textbox.renderX = 10;
 
         this.fightbtn.renderX = this.screenWidth/2 - 10;
         this.bagbtn.renderX = this.screenWidth/2 - 10 + 256;
@@ -226,7 +244,7 @@ Battle.prototype._playIntro = function() {
         this.runbtn.renderX = this.screenWidth/2 - 10 + 256;
     }
 
-    if (this.tick > 90 && this.tick < 160) {
+    if (this.tick > 105 && this.tick < 175) {
         this.player.player_tile.renderX -= 15;
         this.player.base_tile.renderX -= 15;
 
@@ -234,35 +252,59 @@ Battle.prototype._playIntro = function() {
         this.enemy.base_tile.renderX += 15;
     }
 
-    if (this.tick === 165) {
+    if (this.tick === 180) {
         this.enemy.monster_tile.pause = false;
-    }
+        // this.enemy.audio.play();
 
-    if (this.tick === 200) {
+        this.conversation.addText("A wild monster appeared!+");
+        this.conversation.nextable = true;
+        this.conversation.next();
+        this.conversation.addCallable(function() {
+            this.tick = -1;
+            this.state = "intro2";
+            this.conversation.addText("Go hehehehehe!+");
+            this.conversation.nextable = false;
+        }.bind(this));
+    }
+}
+
+Battle.prototype._playIntro2 = function() {
+    if (this.tick === 0) {
         this.player.player_tile.pause = false;
     }
 
-    if (this.tick > 200 && this.tick < 240) {
+    if (this.tick > 0 && this.tick < 40) {
         this.player.player_tile.renderX -= 15;
     }
 
-    if (this.tick === 210) {
+    if (this.tick === 10) {
         this.ball.renderX = 150;
     }
 
-    if (this.tick > 210 && this.tick < 240) {
+    if (this.tick > 10 && this.tick < 40) {
         this.ball.renderX += 5;
         this.ball.renderY += 2;
     }
 
-    if (this.tick === 240) {
-        this.ball.renderX = -500;
+    if (this.tick === 40) {
         this.player.monster_tile.pause = false;
-        this.player.monster_tile.renderX = 512/2 - 350/2;
+        this.player.monster_tile.alpha = 1;
+        // this.player.audio.play();
+
+        this.ball.renderX = -500;
+    }
+
+    if (this.tick === 60) {
+        this.conversation.nextable = true;
+        this.conversation.addText("What will+hehehe do?");
+        this.conversation.addCallable(function() {
+            this.conversation.nextable = false;
+            this.state = "choose";
+        }.bind(this));
     }
 }
 
-Battle.prototype._mouseEvents = function(game) {
+Battle.prototype._chooseMouseEvents = function(game) {
     let isInsideBox = function(x1, y1, x2, y2) {
         let x = game.listeners.mousePositionX;
         let y = game.listeners.mousePositionY;
@@ -283,7 +325,12 @@ Battle.prototype._mouseEvents = function(game) {
         this.fightbtn.setFrame(1);
 
         if (game.listeners.click === true) {
-            console.log("fight");
+            this.state = "choosefight";
+
+            this.conversation.addText("+");
+            this.conversation.nextable = true;
+            this.conversation.next();
+            this.conversation.nextable = false;
         }
     }
 
@@ -307,22 +354,50 @@ Battle.prototype._mouseEvents = function(game) {
         this.runbtn.setFrame(1);
 
         if (game.listeners.click === true) {
-            console.log("run");
-
-            game.endBattle();
+            this.state = "chooserun";
         }
     }
+}
+
+Battle.prototype._chooseFightMouseEvents = function(game) {
+    let isInsideBox = function(x1, y1, x2, y2) {
+        let x = game.listeners.mousePositionX;
+        let y = game.listeners.mousePositionY;
+
+        if (x > x1 && y > y1 && x < x2 && y < y2) {
+            return true;
+        }
+
+        return false;
+    }
+
+    let x = game.listeners.mousePositionX;
+    let y = game.listeners.mousePositionY;
 }
 
 Battle.prototype.update = function(game) {
     this.tick += 1;
 
-    this._playIntro();
+    if (this.state === "intro1") {
+        this._playIntro1();
+    }
 
-    if (this.tick < 100) {
-        this.state = "transition";
-    } else {
-        this.state = "battle";
+    if (this.state === "intro2") {
+        this._playIntro2();
+
+        this.ball.update(game);
+    }
+
+    if (this.state === "choose") {
+        this._chooseMouseEvents(game);
+    }
+
+    if (this.state === "choosefight") {
+        this._chooseFightMouseEvents(game);
+    }
+
+    if (this.state === "chooserun") {
+        game.endBattle();
     }
 
     this.player.monster_tile.update(game);
@@ -330,51 +405,181 @@ Battle.prototype.update = function(game) {
 
     this.enemy.monster_tile.update(game);
 
-    this.ball.update(game);
-
-    this._mouseEvents(game);
+    this.conversation.update(game);
 }
 
 Battle.prototype.render = function(context) {
-    // if (this.state === "transition") {
+    this.flash.render(context);
 
-    //     return;
-    // }
+    this.background.render(context);
 
-    // if (this.state === "battle") {
-        this.flash.render(context);
+    // Enemy
+    this.enemy.base_tile.render(context);
+    this.enemy.monster_tile.render(context);
 
-        this.background.render(context);
+    // Ball
+    this.ball.render(context);
 
-        // Enemy
-        this.enemy.base_tile.render(context);
-        this.enemy.monster_tile.render(context);
+    // Player
+    this.player.base_tile.render(context);
+    this.player.player_tile.render(context);
+    this.player.monster_tile.render(context);
 
-        // Ball
-        this.ball.render(context);
+    // Bottom bar
+    this.bottombar.render(context);
 
-        // Player
-        this.player.base_tile.render(context);
-        this.player.player_tile.render(context);
-        this.player.monster_tile.render(context);
+    // this.textbox.render(context);
 
-        // Bottom bar
-        this.bottombar.render(context);
+    this.conversation.render(context);
 
-        this.textbox.render(context);
-
+    if (this.state === "choose") {
         this.fightbtn.render(context);
         this.bagbtn.render(context);
         this.pokemonbtn.render(context);
         this.runbtn.render(context);
-
-        // return;
-    // }
+    }
 }
 
 module.exports = Battle;
 
-},{"./Tile.js":6}],2:[function(require,module,exports){
+},{"./Conversation.js":2,"./Tile.js":7}],2:[function(require,module,exports){
+const Tile = require("./Tile.js");
+
+function Conversation(settings) {
+    this.tile = new Tile({
+        renderX: 0,
+        renderY: 583,
+        renderWidth: 1028,
+        renderHeight: 179,
+        tileWidth: 1028,
+        tileHeight: 179,
+        src: settings.backgroundSrc,
+    });
+
+    this.texts = ["+"];
+
+    this.line1 = "";
+    this.line2 = "";
+
+    this.textsIndex = 0;
+
+    this.callable = null;
+
+    this.nextBtn = new Tile({
+        renderX: 840,
+        renderY: 610,
+        renderWidth: 120,
+        renderHeight: 120,
+        tileWidth: 120,
+        tileHeight: 120,
+        offset: 120,
+        numberOfFrames: 2,
+        src: "img/conversation/nextBtn.png",
+        loop: false,
+        pause: true
+    });
+
+    // Hides the covnversation, do not render the converation if true
+    this.hidden = settings.hidden;
+
+    this.typing = false;
+
+    this.nextable = settings.nextable;
+}
+
+// Shows the next text
+Conversation.prototype.next = function() {
+    // Do not go to next text if current text is still typing
+    if (this.typing === true || this.nextable === false) {
+        return;
+    }
+
+    if (this.callable) {
+        this.callable();
+        this.callable = null;
+    }
+
+    // Do not allow to go to next if next text is undefined!
+    if (this.texts[this.textsIndex + 1] !== undefined) {
+        this.textsIndex += 1;
+    }
+
+    this.line1 = "";
+    this.line2 = "";
+}
+
+Conversation.prototype.addText = function(text) {
+    this.texts.push(text);
+}
+
+/**
+ * Adds a callable to be called when next is called
+ */
+Conversation.prototype.addCallable = function(callable) {
+    this.callable = callable;
+}
+
+/**
+ * Updates text 'animation' and determines if is typing
+ */
+Conversation.prototype._updateText = function() {
+    if (this.line1 + "+" + this.line2 !== this.texts[this.textsIndex]) {
+        this.typing = true;
+
+        let index = this.texts[this.textsIndex].indexOf("+");
+
+        if (this.texts[this.textsIndex].substring(0, index) !== this.line1) {
+            this.line1 += this.texts[this.textsIndex][this.line1.length];
+        } else {
+            this.line2 += this.texts[this.textsIndex][this.line1.length + this.line2.length + 1];
+        }
+
+        if (this.line1 + "+" + this.line2 === this.texts[this.textsIndex]) {
+            this.typing = false;
+        }
+    }
+}
+
+Conversation.prototype.update = function(game) {
+    this._updateText();
+
+    if (this.typing === true || this.nextable === false) {
+        this.nextBtn.setFrame(0);
+    } else {
+        this.nextBtn.setFrame(1);
+    }
+
+    let x = game.listeners.mousePositionX;
+    let y = game.listeners.mousePositionY;
+
+    // If clicked at conversation bar
+    if (game.listeners.click === true && x > 0 && x < 1028 && y > 576 && y < 768) {
+        this.next();
+    }
+}
+
+Conversation.prototype.render = function(context) {
+    // Do not render if conversation should be hidden
+    if (this.hidden === true) {
+        return;
+    }
+
+    this.tile.render(context);
+
+    this.nextBtn.render(context);
+
+    context.font = "30px 'Press Start 2P'";
+    context.fillStyle = "rgba(0,0,0,0.8)";
+    context.fillText(this.line1, 75, 660);
+
+    context.font = "30px 'Press Start 2P'";
+    context.fillStyle = "rgba(0,0,0,0.8)";
+    context.fillText(this.line2, 75, 720);
+}
+
+module.exports = Conversation;
+
+},{"./Tile.js":7}],3:[function(require,module,exports){
 const TileManager = require("./TileManager.js");
 
 function Entity(settings) {
@@ -738,17 +943,29 @@ Entity.prototype.render = function(context) {
 
 module.exports = Entity;
 
-},{"./TileManager.js":7}],3:[function(require,module,exports){
+},{"./TileManager.js":8}],4:[function(require,module,exports){
 const Entity = require("./Entity.js");
 const MapInitializer = require("./MapInitializer.js");
 const Battle = require("./Battle.js");
 
 function Game() {
-    this.tickCounter = 0;
-    this.framerate = 30;
+    this.now = null;
+    this.deltaTime = 0;
+    this.last = Date.now();
+    this.step = 1/30;
 
-    this.canvas = document.querySelector(".canvas1");
-    this.context = this.canvas.getContext("2d");
+    this.tickCounter = 0;
+
+    this.state = "world";
+
+    this.worldCanvas = document.querySelector(".worldCanvas");
+    this.worldContext = this.worldCanvas.getContext("2d");
+
+    this.battleCanvas = document.querySelector(".battleCanvas");
+    this.battleContext = this.battleCanvas.getContext("2d");
+
+    this.canvas = this.worldCanvas;
+    this.context = this.worldContext;
 
     this.map = MapInitializer.getMap("startMap");
 
@@ -789,26 +1006,37 @@ Game.prototype.isLoaded = function() {
 Game.prototype.startGame = function() {
     require("./listeners.js").addListeners(this);
 
-    // Start game!
-    setInterval(frame.bind(this), 1000/this.framerate);
-
     function frame() {
-        this.tickCounter += 1;
+        this.now = Date.now();
 
-        update();
-        render();
+        this.deltaTime = this.deltaTime + Math.min(1, (this.now - this.last) / 1000);
+
+        while(this.deltaTime > this.step) {
+            this.deltaTime = this.deltaTime - this.step;
+            update();
+            render();
+        }
+
+        this.last = this.now;
+
+        requestAnimationFrame(frame.bind(this));
     }
 
+    // Start game!
+    requestAnimationFrame(frame.bind(this));
+
     let update = () => {
+        this.tickCounter += 1;
+
         // Do not update while system is loading
         if (!this.isLoaded()) {return;}
 
-        if (this.battle !== null)
-        {
+        if (this.state === "battle") {
+            // Update battle
             this.battle.update(this);
         }
-        else
-        {
+
+        if (this.state === "world") {
             // Update coolguy
             this.coolguy.update(this);
 
@@ -821,48 +1049,50 @@ Game.prototype.startGame = function() {
     }
 
     let render = () => {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-        // if (this.battle !== null) {
-        //     return this.battle.render(this.context);
-        // }
 
         // Render 'loading screen' while system is loading
         if (!this.isLoaded()) {
             this.context.beginPath();
 
-            this.context.fillStyle = "rgb(0, 0, 0)";
-            this.context.fillRect(0, 0, 10000, 10000);
-
             this.context.font = "26px Georgia";
             this.context.fillStyle = "#DDDDDD";
             this.context.fillText("Loading!", this.canvas.width/2 - 50, this.canvas.height/2 - 10);
 
-            this.context.stroke();
+            // this.context.stroke();
 
             return;
         }
 
-        this.map.renderLayer1(this.context);
+        if (this.state === "battle") {
+            let context = this.battleContext;
 
-        this.map.renderTiles(this.context);
+            context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-        this.coolguy.render(this.context);
+            this.battle.render(context);
+        }
 
-        this.map.renderLayer2(this.context);
+        if (this.state === "world") {
+            let context = this.worldContext;
 
-        this.map.render(this.context);
+            context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+            this.map.renderLayer1(context);
+
+            this.map.renderTiles(context);
+
+            this.coolguy.render(context);
+
+            this.map.renderLayer2(context);
+
+            this.map.render(context);
+        }
 
         // If system was recently loaded -> tone from black screen to game
         if (this.tickCounter - this.loadedTick < 20) {
             this.context.beginPath();
             this.context.fillStyle = "rgba(0, 0, 0, " + (1 - (this.tickCounter - this.loadedTick)/20) + ")";
-            this.context.fillRect(0, 0, 10000, 10000);
+            this.context.fillRect(0, 0, 2000, 2000);
             this.context.stroke();
-        }
-
-        if (this.battle !== null) {
-            this.battle.render(this.context);
         }
     }
 };
@@ -895,7 +1125,7 @@ Game.prototype.event = function(event) {
 
         event.data.tile.pause = false;
 
-        this.battle = new Battle();
+        this.startBattle();
 
         return;
     }
@@ -909,16 +1139,38 @@ Game.prototype.event = function(event) {
 }
 
 Game.prototype.startBattle = function(settings) {
+    this.map.audio.pause();
+
     this.battle = new Battle(settings);
+
+    this.state = "battle";
+
+    // this.canvas = this.battleCanvas;
+    // this.context = this.battleContext;
+
+    this.worldCanvas.style.zIndex = 1;
+    this.battleCanvas.style.zIndex = 2;
 }
 
 Game.prototype.endBattle = function() {
+    this.battle.audio.pause();
+
+    this.map.audio.play();
+
     this.battle = null;
+
+    this.state = "world";
+
+    // this.canvas = this.worldCanvas;
+    // this.context = this.worldContext;
+
+    this.worldCanvas.style.zIndex = 2;
+    this.battleCanvas.style.zIndex = 1;
 }
 
 module.exports = Game;
 
-},{"./Battle.js":1,"./Entity.js":2,"./MapInitializer.js":5,"./listeners.js":9}],4:[function(require,module,exports){
+},{"./Battle.js":1,"./Entity.js":3,"./MapInitializer.js":6,"./listeners.js":10}],5:[function(require,module,exports){
 function Map(x, y, collisionMap, gridSize, layer1Src, layer2Src, audioSrc, tiles) {
     this.x = x;
     this.y = y;
@@ -1029,7 +1281,7 @@ Map.prototype.destroy = function() {
 
 module.exports = Map;
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 const Map = require("./Map.js");
 const TileManager = require("./TileManager.js");
 
@@ -1331,7 +1583,7 @@ module.exports = {
     getMap: getMap
 };
 
-},{"./Map.js":4,"./TileManager.js":7}],6:[function(require,module,exports){
+},{"./Map.js":5,"./TileManager.js":8}],7:[function(require,module,exports){
 function Tile(settings) {
     this.renderCol = settings.renderCol ? settings.renderCol : 0;
     this.renderRow = settings.renderRow ? settings.renderRow : 0;
@@ -1440,7 +1692,7 @@ Tile.prototype.render = function(context, mapX, mapY) {
 
 module.exports = Tile;
 
-},{}],7:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 const Tile = require("./Tile.js");
 
 function TileManager(settings) {
@@ -1508,7 +1760,7 @@ TileManager.prototype.getTile = function(identifier, renderCol, renderRow, sprit
 
 module.exports = TileManager;
 
-},{"./Tile.js":6}],8:[function(require,module,exports){
+},{"./Tile.js":7}],9:[function(require,module,exports){
 let Game = require("./Game.js");
 
 // node_modules/.bin/browserify source/js/app.js > debug/js/bundle.js
@@ -1519,13 +1771,16 @@ window.addEventListener("load", function() {
     game.startGame();
 });
 
-},{"./Game.js":3}],9:[function(require,module,exports){
+},{"./Game.js":4}],10:[function(require,module,exports){
 function addListeners(game) {
     game.listeners = {};
 
-    game.canvas.addEventListener("click", function(event) {
+    let clickEvent = function(event) {
         game.listeners.click = true;
-    });
+    }
+
+    game.worldCanvas.addEventListener("click", clickEvent);
+    game.battleCanvas.addEventListener("click", clickEvent);
 
     game.canvas.addEventListener("mousedown", function(event) {
         game.listeners.mousedown = true;
@@ -1536,14 +1791,17 @@ function addListeners(game) {
         game.listeners.mousePositionY = event.clientY - canvasRect.top;
     });
 
-    game.canvas.addEventListener("mousemove", function(event) {
+    let mousemoveEvent = function(event) {
         game.listeners.mousemove = true;
 
         let canvasRect = game.canvas.getBoundingClientRect();
 
         game.listeners.mousePositionX = event.clientX - canvasRect.left;
         game.listeners.mousePositionY = event.clientY - canvasRect.top;
-    });
+    }
+
+    game.worldCanvas.addEventListener("mousemove", mousemoveEvent);
+    game.battleCanvas.addEventListener("mousemove", mousemoveEvent);
 
     window.addEventListener("mouseup", function(event) {
         game.listeners.mouseup = true;
@@ -1551,14 +1809,22 @@ function addListeners(game) {
         game.listeners.mousedown = false;
         game.listeners.mousemove = false;
     });
-
-    game.canvas.addEventListener("keydown", function(event) {
-        console.log("keydown");
-    });
 }
+
+// function isInsideBox(x1, y1, x2, y2) {
+//     let x = game.listeners.mousePositionX;
+//     let y = game.listeners.mousePositionY;
+
+//     if (x > x1 && y > y1 && x < x2 && y < y2) {
+//         return true;
+//     }
+
+//     return false;
+// }
 
 module.exports = {
-    addListeners: addListeners
+    addListeners: addListeners,
+    // isInsideBox: isInsideBox
 }
 
-},{}]},{},[8]);
+},{}]},{},[9]);
