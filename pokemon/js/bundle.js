@@ -5,9 +5,15 @@ const Conversation = require("./Conversation.js");
 function Battle(service, settings) {
     this.service = service;
     // this.tick = -1;
+<<<<<<< HEAD
+=======
+
+    this.state = "intro1";
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 
     this.state = "intro1";
 
+<<<<<<< HEAD
     this.opponent = settings.opponent;
 
     // this.screenWidth = 1024;
@@ -16,6 +22,114 @@ function Battle(service, settings) {
     // this.audio = new Audio("audio/pkmn-fajt.mp3");
     // this.audio.loop = true;
     // this.audio.play();
+=======
+    this.audio = new Audio("audio/pkmn-fajt.mp3");
+    this.audio.loop = true;
+    this.audio.play();
+
+    this.conversation = new Conversation({
+        backgroundSrc: "img/conversation/background_battle.png",
+        hidden: true,
+        nextable: false
+    });
+    
+    this.flash = new Tile({
+        renderWidth: 1024,
+        renderHeight: 768,
+        tileWidth: 1024,
+        tileHeight: 768,
+        alpha: 0,
+        src: "img/battle/flash.png"
+    });
+    this.flash.alpha = 0;
+
+    this.background = new Tile({
+        renderX: -10000,
+        renderY: 0,
+        renderWidth: this.screenWidth,
+        renderHeight: this.screenHeight,
+        tileWidth: 512,
+        tileHeight: 288,
+        src: "img/battle/battlebgForestEve.png"
+    });
+
+    this.player = {
+        name: "player",
+        audio: new Audio("audio/monster/130Cry.wav"),
+        player_tile: new Tile({
+            renderX: 1024 + 170,
+            renderY: 768 - 192 - 230,
+            renderWidth: 230,
+            renderHeight: 230,
+            spriteCol: 0,
+            spriteRow: 0,
+            tileWidth: 128,
+            tileHeight: 128,
+            offset: 128,
+            numberOfFrames: 5,
+            updateFrequency: 5,
+            src: "img/battle/player_back.png",
+            loop: false,
+            pause: true
+        }),
+        monster_tile: new Tile({
+            renderX: 512/2 - 350/2,
+            renderY: 310,
+            renderWidth: 350,
+            renderHeight: 350,
+            spriteCol: 0,
+            spriteRow: 0,
+            tileWidth: 108,
+            tileHeight: 108,
+            offset: 108,
+            numberOfFrames: 87,
+            updateFrequency: 1,
+            src: "img/battle/player_monster_shiny.png",
+            loop: false,
+            pause: true
+        }),
+        base_tile: new Tile({
+            renderX: 1024,
+            renderY: this.screenHeight - 192 - 64,
+            renderWidth: 512,
+            renderHeight: 64,
+            tileWidth: 408,
+            tileHeight: 64,
+            src: "img/battle/playerbaseFieldGrassEve.png"
+        })
+    };
+    this.player.monster_tile.alpha = 0;
+
+    this.enemy = {
+        name: "HEJ",
+        audio: new Audio("audio/monster/093Cry.wav"),
+        monster_tile: new Tile({
+            renderX: 0 - 512/2 - 350/2,
+            renderY: 75,
+            renderWidth: 350,
+            renderHeight: 350,
+            spriteCol: 0,
+            spriteRow: 0,
+            tileWidth: 85,
+            tileHeight: 85,
+            offset: 85,
+            numberOfFrames: 25,
+            updateFrequency: 1,
+            src: "img/battle/enemy_monster.png",
+            loop: false,
+            pause: true
+        }),
+        base_tile: new Tile({
+            renderX: 0 - 512,
+            renderY: 200,
+            renderWidth: 512,
+            renderHeight: 256,
+            tileWidth: 256,
+            tileHeight: 128,
+            src: "img/battle/enemybaseFieldGrassEve.png"
+        })
+    };
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 
     // this.conversation = new Conversation({
     //     backgroundSrc: "img/conversation/background_battle.png",
@@ -23,6 +137,7 @@ function Battle(service, settings) {
     //     nextable: false
     // });
 
+<<<<<<< HEAD
     this.flashTile = this.service.resources.getTile("flash", 0, 0, 1024, 768);
     this.flashTile.alpha = 0;
 
@@ -47,6 +162,67 @@ function Battle(service, settings) {
     this.runbtnTile = this.service.resources.getTile("battleRunbtn", 770, 768 - 192 + 92, 256, 92);
 
     console.log(this.runbtnTile);
+=======
+    this.bottombar = new Tile({renderX: -10000, renderY: this.screenHeight - 192, renderWidth: 1028, renderHeight: 192, tileWidth: 512, tileHeight: 96, src: "img/battle/bottombar.png"});
+
+    // this.textbox = new Tile({renderX: -10000, renderY: this.screenHeight - 192 + 10, renderWidth: 481, renderHeight: 176, tileWidth: 244, tileHeight: 88, src: "img/battle/textbox.png"});
+
+    this.fightbtn = new Tile({
+        renderX: 514,
+        renderY: this.screenHeight - 192 + 10,
+        renderWidth: 256,
+        renderHeight: 92,
+        tileWidth: 130,
+        tileHeight: 46,
+        offset: 130,
+        numberOfFrames: 2,
+        src: "img/battle/fightbtn.png",
+        loop: false,
+        pause: true
+    });
+
+    this.bagbtn = new Tile({
+        renderX: 770,
+        renderY: this.screenHeight - 192 + 10,
+        renderWidth: 256,
+        renderHeight: 92,
+        tileWidth: 130,
+        tileHeight: 46,
+        offset: 130,
+        numberOfFrames: 2,
+        src: "img/battle/bagbtn.png",
+        loop: false,
+        pause: true
+    });
+
+    this.pokemonbtn = new Tile({
+        renderX: 514,
+        renderY: this.screenHeight - 192 + 10 + 92 - 8,
+        renderWidth: 256,
+        renderHeight: 92,
+        tileWidth: 130,
+        tileHeight: 46,
+        offset: 130,
+        numberOfFrames: 2,
+        src: "img/battle/pokemonbtn.png",
+        loop: false,
+        pause: true
+    });
+
+    this.runbtn = new Tile({
+        renderX: 770,
+        renderY: this.screenHeight - 192 + 10 + 92 - 8,
+        renderWidth: 256,
+        renderHeight: 92,
+        tileWidth: 130,
+        tileHeight: 46,
+        offset: 130,
+        numberOfFrames: 2,
+        src: "img/battle/runbtn.png",
+        loop: false,
+        pause: true
+    });
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 }
 
 Battle.prototype._playIntro1 = function() {
@@ -62,8 +238,36 @@ Battle.prototype._playIntro1 = function() {
     }
     if (this.tick >= 15 && this.tick < 20) {
         this.flash.alpha -= 0.20;
+<<<<<<< HEAD
+=======
     }
 
+    if (this.tick >= 20 && this.tick < 25) {
+        this.flash.alpha += 0.20;
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
+    }
+    if (this.tick >= 25 && this.tick < 30) {
+        this.flash.alpha -= 0.20;
+    }
+
+    if (this.tick >= 30 && this.tick < 35) {
+        this.flash.alpha += 0.20;
+    }
+    if (this.tick >= 35 && this.tick < 40) {
+        this.flash.alpha -= 0.20;
+    }
+
+    if (this.tick >= 60 && this.tick < 70) {
+        this.flash.alpha += 0.10;
+    }
+
+    // Transition is over -> set starting positions
+    if (this.tick === 105) {
+        this.background.renderX = 0;
+
+        this.bottombar.renderX = 0;
+
+<<<<<<< HEAD
     if (this.tick >= 20 && this.tick < 25) {
         this.flash.alpha += 0.20;
     }
@@ -88,6 +292,8 @@ Battle.prototype._playIntro1 = function() {
 
         this.bottombar.renderX = 0;
 
+=======
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
         this.conversation.hidden = false;
 
         // this.textbox.renderX = 10;
@@ -232,6 +438,7 @@ Battle.prototype._chooseFightMouseEvents = function() {
 Battle.prototype.update = function(ame) {
     this.tick += 1;
 
+<<<<<<< HEAD
     // if (this.state === "intro1") {
     //     this._playIntro1();
     // }
@@ -256,6 +463,42 @@ Battle.prototype.update = function(ame) {
 
     // this.player.monster_tile.update();
     // this.player.player_tile.update();
+=======
+    if (this.state === "intro1") {
+        this._playIntro1();
+    }
+
+    if (this.state === "intro2") {
+        this._playIntro2();
+
+        this.ball.update();
+    }
+
+    if (this.state === "choose") {
+        this._chooseMouseEvents();
+    }
+
+    if (this.state === "choosefight") {
+        this._chooseFightMouseEvents();
+    }
+
+    if (this.state === "chooserun") {
+        
+    }
+
+    this.player.monster_tile.update();
+    this.player.player_tile.update();
+
+    this.enemy.monster_tile.update();
+
+    this.conversation.update();
+}
+
+Battle.prototype.render = function(context) {
+    this.flash.render(context);
+
+    this.background.render(context);
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 
     // this.enemy.monster_tile.update();
 
@@ -268,15 +511,30 @@ Battle.prototype.render = function() {
     this.runbtnTile.render(context);
     // this.flash.render(context);
 
+<<<<<<< HEAD
     // this.background.render(context);
 
     // // Enemy
     // this.enemy.base_tile.render(context);
     // this.enemy.monster_tile.render(context);
+=======
+    // this.textbox.render(context);
+
+    this.conversation.render(context);
+
+    if (this.state === "choose") {
+        this.fightbtn.render(context);
+        this.bagbtn.render(context);
+        this.pokemonbtn.render(context);
+        this.runbtn.render(context);
+    }
+}
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 
     // // Ball
     // this.ball.render(context);
 
+<<<<<<< HEAD
     // // Player
     // this.player.base_tile.render(context);
     // this.player.player_tile.render(context);
@@ -299,6 +557,63 @@ Battle.prototype.render = function() {
 
 module.exports = Battle;
 
+},{"./Conversation.js":2,"./Tile.js":9}],2:[function(require,module,exports){
+const Tile = require("./Tile.js");
+
+function Conversation(settings) {
+    this.tile = new Tile({
+        renderX: 0,
+        renderY: 583,
+        renderWidth: 1028,
+        renderHeight: 179,
+        tileWidth: 1028,
+        tileHeight: 179,
+        src: settings.backgroundSrc,
+    });
+
+    this.texts = ["+"];
+
+    this.line1 = "";
+    this.line2 = "";
+
+    this.textsIndex = 0;
+
+    this.callable = null;
+
+    this.nextBtn = new Tile({
+        renderX: 840,
+        renderY: 610,
+        renderWidth: 120,
+        renderHeight: 120,
+        tileWidth: 120,
+        tileHeight: 120,
+        offset: 120,
+        numberOfFrames: 2,
+        src: "img/conversation/nextBtn.png",
+        loop: false,
+        pause: true
+    });
+
+    // Hides the covnversation, do not render the converation if true
+    this.hidden = settings.hidden;
+
+    this.typing = false;
+
+    this.nextable = settings.nextable;
+}
+
+// Shows the next text
+Conversation.prototype.next = function() {
+    // Do not go to next text if current text is still typing
+    if (this.typing === true || this.nextable === false) {
+        return;
+    }
+
+    if (this.callable) {
+        this.callable();
+        this.callable = null;
+    }
+=======
 },{"./Conversation.js":2,"./Tile.js":9}],2:[function(require,module,exports){
 const Tile = require("./Tile.js");
 
@@ -480,6 +795,133 @@ function Entity(service, settings) {
     ];
 
     this.activeTiles = this.walkTiles;
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
+
+    // Do not allow to go to next if next text is undefined!
+    if (this.texts[this.textsIndex + 1] !== undefined) {
+        this.textsIndex += 1;
+    }
+
+<<<<<<< HEAD
+    this.line1 = "";
+    this.line2 = "";
+}
+
+Conversation.prototype.addText = function(text) {
+    this.texts.push(text);
+}
+
+/**
+ * Adds a callable to be called when next is called
+ */
+Conversation.prototype.addCallable = function(callable) {
+    this.callable = callable;
+}
+
+/**
+ * Updates text 'animation' and determines if is typing
+ */
+Conversation.prototype._updateText = function() {
+    if (this.line1 + "+" + this.line2 !== this.texts[this.textsIndex]) {
+        this.typing = true;
+
+        let index = this.texts[this.textsIndex].indexOf("+");
+
+        if (this.texts[this.textsIndex].substring(0, index) !== this.line1) {
+            this.line1 += this.texts[this.textsIndex][this.line1.length];
+        } else {
+            this.line2 += this.texts[this.textsIndex][this.line1.length + this.line2.length + 1];
+        }
+
+        if (this.line1 + "+" + this.line2 === this.texts[this.textsIndex]) {
+            this.typing = false;
+        }
+    }
+}
+
+Conversation.prototype.update = function() {
+    this._updateText();
+
+    if (this.typing === true || this.nextable === false) {
+        this.nextBtn.setFrame(0);
+    } else {
+        this.nextBtn.setFrame(1);
+    }
+
+    let x = this.service.listeners.mousePositionX;
+    let y = this.service.listeners.mousePositionY;
+
+    // If clicked at conversation bar
+    if (this.service.listeners.click === true && x > 0 && x < 1028 && y > 576 && y < 768) {
+        this.next();
+    }
+}
+
+Conversation.prototype.render = function(context) {
+    // Do not render if conversation should be hidden
+    if (this.hidden === true) {
+        return;
+    }
+
+    this.tile.render(context);
+
+    this.nextBtn.render(context);
+
+    context.font = "30px 'Press Start 2P'";
+    context.fillStyle = "rgba(0,0,0,0.8)";
+    context.fillText(this.line1, 75, 660);
+
+    context.font = "30px 'Press Start 2P'";
+    context.fillStyle = "rgba(0,0,0,0.8)";
+    context.fillText(this.line2, 75, 720);
+}
+
+module.exports = Conversation;
+
+},{"./Tile.js":9}],3:[function(require,module,exports){
+function Entity(service, settings) {
+    this.service = service;
+
+    this.x = 14*32;
+    this.y = 35*32;
+
+    this.collisionSquare = 20;
+
+    this.speed = 4;
+
+    this.direction = 3;
+
+    this.state = "walking";
+
+    this.col = Math.floor(this.x / 32);
+    this.row = Math.floor(this.y / 32);
+
+    this.speedX = 0;
+    this.speedY = 0;
+
+    this.stop = false;
+
+    // left, up, right, down
+    this.walkTiles = [
+        this.service.resources.tiles.find(tile => tile.name === "playerWalk(0,1)"),
+        this.service.resources.tiles.find(tile => tile.name === "playerWalk(0,3)"),
+        this.service.resources.tiles.find(tile => tile.name === "playerWalk(0,2)"),
+        this.service.resources.tiles.find(tile => tile.name === "playerWalk(0,0)")
+    ];
+    this.grassTiles = [
+        this.service.resources.tiles.find(tile => tile.name === "playerGrass(0,1)"),
+        this.service.resources.tiles.find(tile => tile.name === "playerGrass(0,3)"),
+        this.service.resources.tiles.find(tile => tile.name === "playerGrass(0,2)"),
+        this.service.resources.tiles.find(tile => tile.name === "playerGrass(0,0)")
+    ];
+    this.waterTiles = [
+        this.service.resources.tiles.find(tile => tile.name === "playerWater(0,1)"),
+        this.service.resources.tiles.find(tile => tile.name === "playerWater(0,3)"),
+        this.service.resources.tiles.find(tile => tile.name === "playerWater(0,2)"),
+        this.service.resources.tiles.find(tile => tile.name === "playerWater(0,0)")
+    ];
+
+    this.activeTiles = this.walkTiles;
 
     this.activeTile = this.walkTiles[3];
 
@@ -492,6 +934,17 @@ function Entity(service, settings) {
     this.canvasY = 384; // y position on canvas
 }
 
+=======
+    // Make sure collision square always is in center of entity!
+    // Render width and render height should always be > collision square !!
+    this.renderX = this.service.worldCanvas.width/2 - (this.activeTile.renderWidth - this.collisionSquare) / 2;
+    this.renderY = this.service.worldCanvas.height/2 - (this.activeTile.renderHeight - this.collisionSquare);
+    
+    this.canvasX = 512; // x position on canvas
+    this.canvasY = 384; // y position on canvas
+}
+
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 Entity.prototype._setSpeed = function() {
     let deltaX = this.service.listeners.mousePositionX - (this.canvasX + this.collisionSquare / 2);
     let deltaY = this.service.listeners.mousePositionY - (this.canvasY + this.collisionSquare / 2);
@@ -589,10 +1042,17 @@ Entity.prototype.setState = function(state) {
     }
 
     this.state = state;
+<<<<<<< HEAD
 
     this.renderX = this.service.worldCanvas.width/2 - (this.activeTiles[0].renderWidth - this.collisionSquare) / 2;
     this.renderY = this.service.worldCanvas.height/2 - (this.activeTiles[0].renderHeight - this.collisionSquare);
 
+=======
+
+    this.renderX = this.service.worldCanvas.width/2 - (this.activeTiles[0].renderWidth - this.collisionSquare) / 2;
+    this.renderY = this.service.worldCanvas.height/2 - (this.activeTiles[0].renderHeight - this.collisionSquare);
+
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     console.log(this.state);
 }
 
@@ -698,6 +1158,7 @@ function Game() {
                 this.service.mapManager = new MapManager(this.service, {});
 
                 this.service.map = this.service.mapManager.getMap("startMap");
+<<<<<<< HEAD
 
                 this.service.state = "world";
             },
@@ -720,6 +1181,30 @@ function Game() {
     this.service.worldCanvas = document.querySelector(".worldCanvas");
     this.service.worldContext = this.service.worldCanvas.getContext("2d");
 
+=======
+
+                this.service.state = "world";
+            },
+            function() {
+                this.service.map.audio.volume = 0;
+                this.service.util.playAudio(this.service.map.audio);
+            }
+        );
+    });
+
+    // Loading properties
+    this.service.loadCanvas = document.querySelector(".loadCanvas");
+    this.service.loadContext = this.service.loadCanvas.getContext("2d");
+
+    // Battle properties
+    this.service.battleCanvas = document.querySelector(".battleCanvas");
+    this.service.battleContext = this.service.battleCanvas.getContext("2d");
+
+    // World properties
+    this.service.worldCanvas = document.querySelector(".worldCanvas");
+    this.service.worldContext = this.service.worldCanvas.getContext("2d");
+
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     require("./listeners.js").addListeners(this.service);
 
     this.startGame();
@@ -751,16 +1236,27 @@ Game.prototype.update = function() {
 
     // Check for events in service.events
     this.checkEvents();
+<<<<<<< HEAD
 
     // Update loader
     this.loader.update();
 
+=======
+
+    // Update loader
+    this.loader.update();
+
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     if (this.service.state === "loading") {
     }
 
     if (this.service.state === "battle") {
         // Update battle
+<<<<<<< HEAD
         this.service.battle.update();
+=======
+        this.battle.update();
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     }
 
     if (this.service.state === "world") {
@@ -778,12 +1274,21 @@ Game.prototype.update = function() {
 Game.prototype.render = function() {
     this.loader.render();
 
+<<<<<<< HEAD
     if (this.service.state === "battle") {
         let context = this.service.battleContext;
 
         context.clearRect(0, 0, this.service.battleCanvas.width, this.service.battleCanvas.height);
 
         this.service.battle.render();
+=======
+    if (this.state === "battle") {
+        let context = this.battleContext;
+
+        context.clearRect(0, 0, this.battleCanvas.width, this.battleCanvas.height);
+
+        this.battle.render();
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     }
 
     if (this.service.state === "world") {
@@ -806,6 +1311,7 @@ Game.prototype.checkEvents = function() {
     // Do not check for events if there are no events!
     if (this.service.events.length === 0) {
         return;
+<<<<<<< HEAD
     }
     
     for (let i = 0; i < this.service.events.length; i++) {
@@ -813,12 +1319,22 @@ Game.prototype.checkEvents = function() {
 
         event.call(this);
     }
+=======
+    }
+    
+    for (let i = 0; i < this.service.events.length; i++) {
+        let event = this.service.events[i];
+
+        event.call(this);
+    }
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 
     // All events have been checked -> make the events array empty
     this.service.events = [];
 }
 
 module.exports = Game;
+<<<<<<< HEAD
 
 },{"./Battle.js":1,"./Entity.js":3,"./Loader.js":5,"./MapManager.js":7,"./NiceFunctions.js":8,"./listeners.js":11}],5:[function(require,module,exports){
 const Tile = require("./Tile.js");
@@ -842,6 +1358,22 @@ function Loader(service, settings)
         tile.renderWidth = renderWidth;
         tile.renderHeight = renderHeight;
 
+=======
+
+},{"./Battle.js":1,"./Entity.js":3,"./Loader.js":5,"./MapManager.js":7,"./NiceFunctions.js":8,"./listeners.js":11}],5:[function(require,module,exports){
+const Tile = require("./Tile.js");
+
+function Loader(service, settings)
+{
+    this.service = service;
+
+    this.service.resources = {};
+
+    this.service.resources.getTile = function(tilename, renderX, renderY) {
+        let tile = this.service.resources.tiles.find(tile => tile.name === tilename);
+        tile.renderX = renderX;
+        tile.renderY = renderY;
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
         return tile;
     }.bind(this);
     
@@ -851,6 +1383,7 @@ function Loader(service, settings)
 
     this.placeholderImage = new Image();
     this.placeholderImage.src = "img/placeholder.png";
+<<<<<<< HEAD
 
     this.loading = false;
 
@@ -866,6 +1399,16 @@ function Loader(service, settings)
     /**
      * Add the images to the tiles
      */
+=======
+
+    this.loading = false;
+
+    this.loadCallable1 = null;
+    this.loadCallable2 = null;
+    this.loadCallable3 = null;
+
+    this._loadTiles();
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 
     this._loadImages();
 
@@ -873,21 +1416,31 @@ function Loader(service, settings)
 }
 
 Loader.prototype._loadAudios = function() {
+<<<<<<< HEAD
     let audiosSrc = [
+=======
+    let audioSrcs = [
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
         "audio/music1.mp3",
         "audio/music2.mp3"
     ];
 
     let audios = [];
 
+<<<<<<< HEAD
     for (let i = 0; i < audiosSrc.length; i++) {
         let audio = new Audio(audiosSrc[i]);
+=======
+    for (let i = 0; i < audioSrcs.length; i++) {
+        let audio = new Audio(audioSrcs[i]);
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
         audios.push(audio);
     }
 
     this.service.resources.audios = audios;
 }
 
+<<<<<<< HEAD
 /**
  * Iterate all tiles and load their image srcs
  */
@@ -932,6 +1485,48 @@ Loader.prototype._createTiles = function() {
      * Sprites
      * (Sprite has many tiles)
      */
+=======
+Loader.prototype._loadImages = function() {
+    // List of all image srcs to ever be used in the game
+    let imageSrcs = [
+        "img/Sea.png",
+        "img/map1layer1.png",
+        "img/map1layer2.png",
+        "img/house1layer1.png",
+        "img/house1layer2.png",
+        "img/character7_walking.png",
+        "img/character_water.png",
+        "img/character7_grass.png"
+    ];
+
+    let images = [];
+
+    // Create image elements for all images
+    for (let i = 0; i < imageSrcs.length; i++) {
+        let image = new Image();
+
+        image.addEventListener("load", function(event) {
+            let image2 = event.target;
+            // let image2 = event.path[0];
+            // Add this image to all tiles that should have this image
+            for (let i = 0; i < this.service.resources.tiles.length; i++) {
+                let tile = this.service.resources.tiles[i];
+                if (tile.src === image2.getAttribute("src")) {
+                    tile.image = image2;
+                }
+            }
+        }.bind(this));
+
+        image.src = imageSrcs[i];
+
+        images.push(image);
+    }
+
+    this.service.resources.images = images;
+}
+
+Loader.prototype._loadTiles = function() {
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     // Takes a sprite and return tiles
     let spriteToTiles = function(sprite) {
         let tiles = [];
@@ -939,7 +1534,11 @@ Loader.prototype._createTiles = function() {
         for (let y = 0; y < sprite.spriteHeight/sprite.tileHeight; y++) {
             for (let x = 0; x < sprite.spriteWidth/sprite.tileWidth; x++) {
                 let tile = new Tile(Object.assign({}, sprite, {
+<<<<<<< HEAD
                     // placeholderImage: this.placeholderImage,
+=======
+                    placeholderImage: this.placeholderImage,
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
                     name: sprite.name + "(" + x + "," + y + ")",
                     spriteCol: x,
                     spriteRow: y
@@ -951,6 +1550,7 @@ Loader.prototype._createTiles = function() {
         return tiles;
     }.bind(this);
 
+<<<<<<< HEAD
     let sprites = require("./resources/sprites.json");
 
     for (let i = 0; i < sprites.length; i++) {
@@ -980,6 +1580,90 @@ Loader.prototype._createTiles = function() {
     }
 
     this.service.resources.monsters = monsters;
+=======
+    /**
+     * Sprites
+     */
+    let playerWalkingSprite = {
+        name: "playerWalk",
+        src: "img/character7_walking.png",
+        tileWidth: 32,
+        tileHeight: 48,
+        spriteWidth: 32,
+        spriteHeight: 192,
+        renderWidth: 32,
+        renderHeight: 48,
+        numberOfFrames: 4,
+        updateFrequency: 7
+    };
+
+    let playerWaterSprite = {
+        name: "playerWater",
+        src: "img/character_water.png",
+        tileWidth: 64,
+        tileHeight: 64,
+        spriteWidth: 64,
+        spriteHeight: 256,
+        renderWidth: 64,
+        renderHeight: 64,
+        numberOfFrames: 4,
+        updateFrequency: 7
+    };
+
+    let playerGrassSprite = {
+        name: "playerGrass",
+        src: "img/character7_grass.png",
+        tileWidth: 32,
+        tileHeight: 48,
+        spriteWidth: 32,
+        spriteHeight: 192,
+        renderWidth: 32,
+        renderHeight: 48,
+        numberOfFrames: 4,
+        updateFrequency: 7
+    };
+
+    let seaSprite = {
+        name: "sea",
+        src: "img/Sea.png",
+        tileWidth: 16,
+        tileHeight: 16,
+        spriteWidth: 96,
+        spriteHeight: 128,
+        renderWidth: 32,
+        renderHeight: 32,
+        numberOfFrames: 8,
+        updateFrequency: 7,
+    };
+
+    /**
+     * Tiles
+     */
+    let map1layer1Tile = new Tile({name: "map1layer1", src: "img/map1layer1.png", placeholderImage: this.placeholderImage, tileWidth: 3200, tileHeight: 3200});
+
+    let map1layer2Tile = new Tile({name: "map1layer2", src: "img/map1layer2.png", placeholderImage: this.placeholderImage, tileWidth: 3200, tileHeight: 3200});
+    
+    let house1layer1Tile = new Tile({name: "house1layer1", src: "img/house1layer1.png", placeholderImage: this.placeholderImage, tileWidth: 3200, tileHeight: 3200});
+    
+    let house1layer2Tile = new Tile({name: "house1layer2", src: "img/house1layer2.png", placeholderImage: this.placeholderImage, tileWidth: 3200, tileHeight: 3200});
+
+    /**
+     * Create tiles from sprites
+     * Add tiles to resources.tiles
+     */
+    let tiles = [];
+
+    tiles.push(...spriteToTiles(seaSprite));
+    tiles.push(...spriteToTiles(playerWalkingSprite));
+    tiles.push(...spriteToTiles(playerWaterSprite));
+    tiles.push(...spriteToTiles(playerGrassSprite));
+    tiles.push(map1layer1Tile);
+    tiles.push(map1layer2Tile);
+    tiles.push(house1layer1Tile);
+    tiles.push(house1layer2Tile);
+
+    this.service.resources.tiles = tiles;
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 }
 
 /**
@@ -1014,10 +1698,66 @@ Loader.prototype.update = function()
             this.service.events.push(this.loadCallable2);
         }
 
+<<<<<<< HEAD
         // this.endTick = this.tick + 10;
         this.endTick = 10 + 10; // Black screen duration + tone duration
+=======
+        this.endTick = this.tick + 10;
     }
 
+    if (this.endTick > 0) {
+        this.endTick -= 1;
+    }
+
+    if (this.endTick === 0) {
+        this.endTick = null;
+
+        this.loading = false;
+
+        this.service.loadCanvas.style.zIndex = -1;
+
+        if (this.loadCallable3) {
+            this.service.events.push(this.loadCallable3);
+        }
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
+    }
+}
+
+Loader.prototype.render = function()
+{
+    let context = this.service.loadContext;
+
+    context.clearRect(0, 0, this.service.loadCanvas.width, this.service.loadCanvas.height);
+
+    context.beginPath();
+
+    let alpha = 1;
+    if (this.endTick) {
+        alpha = this.endTick/10;
+    }
+    else
+    {
+        alpha = this.tick/10;
+    }
+    context.fillStyle = "rgba(0, 0, 0, " + alpha + ")";
+    context.fillRect(0, 0, 2000, 2000);
+    context.stroke();
+
+    // context.font = "26px Georgia";
+    // context.fillStyle = "rgba(255, 255, 255, " + alpha + ")";
+    // context.fillText("Loading!", context.canvas.width/2 - 50, context.canvas.height/2 - 10);
+}
+
+module.exports = Loader;
+
+},{"./Tile.js":9}],6:[function(require,module,exports){
+function Map(service, settings) {
+    this.service = service;
+
+    this.x = settings.x ? settings.x : 0;
+    this.y = settings.y ? settings.y : 0;
+
+<<<<<<< HEAD
     if (this.endTick > 0) {
         this.endTick -= 1;
     }
@@ -1070,6 +1810,8 @@ function Map(service, settings) {
     this.x = settings.x ? settings.x : 0;
     this.y = settings.y ? settings.y : 0;
 
+=======
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     this.collisionMap = settings.collisionMap;
 
     this.gridSize = settings.gridSize ? settings.gridSize : 32;
@@ -1135,6 +1877,7 @@ Map.prototype.renderLayer2 = function() {
     }
 }
 
+<<<<<<< HEAD
 module.exports = Map;
 
 },{}],7:[function(require,module,exports){
@@ -1171,10 +1914,16 @@ function MapManager(service, {}) {
     };
     this.grassEvent = function() {
         this.service.coolguy.setState("grass");
+=======
+Map.prototype.destroy = function() {
+    this.audio.pause();
+}
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 
         // Find the tile coolguy is standing on
         let tile = this.service.map.tiles.find(tile => tile.renderCol === this.service.coolguy.col && tile.renderRow === this.service.coolguy.row);
 
+<<<<<<< HEAD
         // tile.pause = false;
 
         if (true) {
@@ -1186,6 +1935,51 @@ function MapManager(service, {}) {
             this.service.worldCanvas.style.zIndex = -1;
             this.service.battleCanvas.style.zIndex = 1;
         }
+=======
+},{}],7:[function(require,module,exports){
+const Map = require("./Map.js");
+const Tile = require("./Tile.js");
+const Battle = require("./Battle.js");
+
+function MapManager(service) {
+    this.service = service;
+
+    // Some nice events
+    this.normalEvent = function() {
+        this.service.coolguy.setState("walking");
+    };
+    this.newMapEvent = function(newMapName, newX, newY) {
+        this.loader.load(
+            function() {
+                this.service.util.pauseAudio(this.service.map.audio);
+
+                this.service.coolguy.stop = true;
+            },
+            function() {
+                this.service.map.destroy();
+
+                this.service.map = this.service.mapManager.getMap(newMapName);
+
+                this.service.coolguy.x = newX * 32;
+                this.service.coolguy.y = newY * 32;
+            },
+            function() {
+                this.service.util.playAudio(this.service.map.audio);
+
+                this.service.coolguy.stop = false;
+            }
+        );
+    };
+    this.grassEvent = function() {
+        this.service.coolguy.setState("grass");
+
+        // Find the tile coolguy is standing on
+        let tile = this.service.map.tiles.find(tile => tile.renderCol === this.service.coolguy.col && tile.renderRow === this.service.coolguy.row);
+
+        // tile.pause = false;
+
+        this.service.battle = new Battle(this.service, {});
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     };
     this.waterEvent = function() {
         this.service.coolguy.setState("water");
@@ -1260,6 +2054,7 @@ MapManager.prototype.createStartMap = function() {
     let audio = this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/music1.mp3");
 
     let tiles = [
+<<<<<<< HEAD
         this.service.resources.getTile("sea(0,2)", 15*32, 32*32, 32, 32),
         this.service.resources.getTile("sea(1,2)", 16*32, 32*32, 32, 32),
         this.service.resources.getTile("sea(2,2)", 17*32, 32*32, 32, 32),
@@ -1296,6 +2091,44 @@ MapManager.prototype.createStartMap = function() {
         this.service.resources.getTile("sea(3,7)", 18*32, 37*32, 32, 32),
         this.service.resources.getTile("sea(4,7)", 19*32, 37*32, 32, 32),
         this.service.resources.getTile("sea(5,7)", 20*32, 37*32, 32, 32)
+=======
+        this.service.resources.getTile("sea(0,2)", 15*32, 32*32),
+        this.service.resources.getTile("sea(1,2)", 16*32, 32*32),
+        this.service.resources.getTile("sea(2,2)", 17*32, 32*32),
+        this.service.resources.getTile("sea(3,2)", 18*32, 32*32),
+        this.service.resources.getTile("sea(4,2)", 19*32, 32*32),
+        this.service.resources.getTile("sea(5,2)", 20*32, 32*32),
+        this.service.resources.getTile("sea(0,3)", 15*32, 33*32),
+        this.service.resources.getTile("sea(1,3)", 16*32, 33*32),
+        this.service.resources.getTile("sea(2,3)", 17*32, 33*32),
+        this.service.resources.getTile("sea(3,3)", 18*32, 33*32),
+        this.service.resources.getTile("sea(4,3)", 19*32, 33*32),
+        this.service.resources.getTile("sea(5,3)", 20*32, 33*32),
+        this.service.resources.getTile("sea(0,4)", 15*32, 34*32),
+        this.service.resources.getTile("sea(1,4)", 16*32, 34*32),
+        this.service.resources.getTile("sea(2,4)", 17*32, 34*32),
+        this.service.resources.getTile("sea(3,4)", 18*32, 34*32),
+        this.service.resources.getTile("sea(4,4)", 19*32, 34*32),
+        this.service.resources.getTile("sea(5,4)", 20*32, 34*32),
+        this.service.resources.getTile("sea(0,5)", 15*32, 35*32),
+        this.service.resources.getTile("sea(1,5)", 16*32, 35*32),
+        this.service.resources.getTile("sea(2,5)", 17*32, 35*32),
+        this.service.resources.getTile("sea(3,5)", 18*32, 35*32),
+        this.service.resources.getTile("sea(4,5)", 19*32, 35*32),
+        this.service.resources.getTile("sea(5,5)", 20*32, 35*32),
+        this.service.resources.getTile("sea(0,6)", 15*32, 36*32),
+        this.service.resources.getTile("sea(1,6)", 16*32, 36*32),
+        this.service.resources.getTile("sea(2,6)", 17*32, 36*32),
+        this.service.resources.getTile("sea(3,6)", 18*32, 36*32),
+        this.service.resources.getTile("sea(4,6)", 19*32, 36*32),
+        this.service.resources.getTile("sea(5,6)", 20*32, 36*32),
+        this.service.resources.getTile("sea(0,7)", 15*32, 37*32),
+        this.service.resources.getTile("sea(1,7)", 16*32, 37*32),
+        this.service.resources.getTile("sea(2,7)", 17*32, 37*32),
+        this.service.resources.getTile("sea(3,7)", 18*32, 37*32),
+        this.service.resources.getTile("sea(4,7)", 19*32, 37*32),
+        this.service.resources.getTile("sea(5,7)", 20*32, 37*32)
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     ];
 
     let map = new Map(this.service, {
@@ -1408,7 +2241,11 @@ module.exports = MapManager;
 module.exports = {
     pauseAudio: function(audio) {
         let fadeAudio1 = setInterval(function() {
+<<<<<<< HEAD
             if (audio.volume <= 0.010) {
+=======
+            if (audio.volume <= 0.025) {
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
                 audio.pause();
 
                 clearInterval(fadeAudio1);
@@ -1416,31 +2253,52 @@ module.exports = {
                 return;
             }
 
+<<<<<<< HEAD
             audio.volume -= 0.010;
         }, 10);
+=======
+            audio.volume -= 0.025;
+        }, 25);
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     },
     playAudio: function(audio) {
         audio.play();
 
         let fadeAudio2 = setInterval(function() {
+<<<<<<< HEAD
             if (audio.volume >= 0.990) {
+=======
+            if (audio.volume >= 0.975) {
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
                 clearInterval(fadeAudio2);
 
                 return;
             }
 
+<<<<<<< HEAD
             audio.volume += 0.010;
+=======
+            audio.volume += 0.025;
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
         }, 25);
     }
 };
 
 },{}],9:[function(require,module,exports){
 function Tile(settings) {
+<<<<<<< HEAD
     this.name = settings.name ? settings.name : "tilename";
 
     this.src = settings.src;
 
     // this.placeholderImage = settings.placeholderImage;
+=======
+    this.name = settings.name ? settings.name : "hehe";
+
+    this.src = settings.src;
+
+    this.placeholderImage = settings.placeholderImage;
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 
     this.tileWidth = settings.tileWidth ? settings.tileWidth : 0;
     this.tileHeight = settings.tileHeight ? settings.tileHeight : 0;
@@ -1464,6 +2322,12 @@ function Tile(settings) {
 
     this.alpha = settings.alpha ? settings.alpha : 1;
 
+<<<<<<< HEAD
+=======
+    this.renderCol = settings.renderCol ? settings.renderCol : 0;
+    this.renderRow = settings.renderRow ? settings.renderRow : 0;
+
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     this.renderX = settings.renderX ? settings.renderX : 0;
     this.renderY = settings.renderY ? settings.renderY : 0;
 
@@ -1506,6 +2370,7 @@ Tile.prototype.update = function() {
     }
 }
 
+<<<<<<< HEAD
 Tile.prototype.render = function(context, rX, rY) {
     // Do not render if tile has no image
     if (this.image === undefined) {
@@ -1519,6 +2384,11 @@ Tile.prototype.render = function(context, rX, rY) {
 
     rX = rX ? rX : 0;
     rY = rY ? rY : 0;
+=======
+Tile.prototype.render = function(context, mapX, mapY) {
+    mapX = mapX ? mapX : this.service.map.x;
+    mapY = mapY ? mapY : this.service.map.y;
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 
     let xInImage = this.spriteCol * this.tileWidth + this.spriteOffset;
     let yInImage = this.spriteRow * this.tileHeight;
@@ -1527,9 +2397,17 @@ Tile.prototype.render = function(context, rX, rY) {
 
     context.globalAlpha = this.alpha;
 
+    context.save();
+
+    context.globalAlpha = this.alpha;
+
     context.drawImage(
+<<<<<<< HEAD
         // this.image ? this.image : this.placeholderImage,
         this.image,
+=======
+        this.image ? this.image : this.placeholderImage,
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
         xInImage,
         yInImage,
         this.tileWidth,
@@ -1587,10 +2465,17 @@ function addListeners(service) {
         service.listeners.mousePositionX = event.clientX - canvasRect.left;
         service.listeners.mousePositionY = event.clientY - canvasRect.top;
     }
+<<<<<<< HEAD
 
     service.worldCanvas.addEventListener("mousemove", mousemoveEvent);
     service.battleCanvas.addEventListener("mousemove", mousemoveEvent);
 
+=======
+
+    service.worldCanvas.addEventListener("mousemove", mousemoveEvent);
+    service.battleCanvas.addEventListener("mousemove", mousemoveEvent);
+
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
     window.addEventListener("mouseup", function(event) {
         service.listeners.mousedown = false;
         service.listeners.mousemove = false;
@@ -1613,6 +2498,7 @@ module.exports = {
     // isInsideBox: isInsideBox
 }
 
+<<<<<<< HEAD
 },{}],12:[function(require,module,exports){
 module.exports=[
     {
@@ -1789,4 +2675,6 @@ module.exports=[
     }
 ]
 
+=======
+>>>>>>> 9eadeff960547ea93f8117bf669c7b871d4e4c8a
 },{}]},{},[10]);
