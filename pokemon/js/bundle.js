@@ -20,6 +20,8 @@ function Battle(service, settings) {
     this.audio.loop = true;
     this.audio.play();
 
+    console.log(this.audio);
+
     this.conversation = new Conversation(service, {
         backgroundSrc: "img/conversation/background_battle.png",
         hidden: true,
@@ -969,14 +971,6 @@ function Loader(service, settings)
             alpha: tileOrig.alpha
         });
 
-        // // Where to render tile
-        // tile.renderX = renderX;
-        // tile.renderY = renderY;
-
-        // // Render size
-        // tile.renderWidth = renderWidth;
-        // tile.renderHeight = renderHeight;
-
         return tile;
     }.bind(this);
     
@@ -989,6 +983,9 @@ function Loader(service, settings)
     this.loadCallable1 = null;
     this.loadCallable2 = null;
     this.loadCallable3 = null;
+
+    this.loadedImages = 0;
+    this.nrOfImages = 0;
 
     /**
      * Create the tiles
@@ -1081,6 +1078,8 @@ Loader.prototype._loadImages = function() {
 
     imagesSrc = [...new Set(imagesSrc)];
 
+    this.nrOfImages = imagesSrc.length;
+
     // Create an image element for every src
     for (let i = 0; i < imagesSrc.length; i++) {
         let imageSrc = imagesSrc[i];
@@ -1089,6 +1088,8 @@ Loader.prototype._loadImages = function() {
 
         // When the image has finished loading...
         image.addEventListener("load", function(event) {
+            this.loadedImages += 1;
+
             let img = event.target;
 
             // ...add the image element to all tiles with the same src
@@ -1130,6 +1131,8 @@ Loader.prototype._loadAudios = function() {
 
     for (let i = 0; i < audiosSrc.length; i++) {
         let audio = new Audio(audiosSrc[i]);
+
+        audio.setAttribute("preload", "auto");
 
         audios.push(audio);
     }
@@ -1251,9 +1254,9 @@ Loader.prototype.render = function()
     context.fillRect(0, 0, this.service.loadCanvas.width, this.service.loadCanvas.height);
     context.stroke();
 
-    // context.font = "26px Georgia";
-    // context.fillStyle = "rgba(255, 255, 255, " + alpha + ")";
-    // context.fillText("Loading!", context.canvas.width/2 - 50, context.canvas.height/2 - 10);
+    context.font = "26px Georgia";
+    context.fillStyle = "rgba(255, 255, 255, " + this.alpha + ")";
+    context.fillText("" + this.loadedImages + "/" + this.nrOfImages, context.canvas.width/2 - 50, context.canvas.height/2 - 10);
 }
 
 module.exports = Loader;
