@@ -20,11 +20,7 @@ function Battle(service, settings) {
     this.audio.loop = true;
     this.audio.play();
 
-    this.conversation = new Conversation(this.service, {
-        backgroundSrc: "img/conversation/background_battle.png",
-        hidden: true,
-        nextable: false
-    });
+    this.conversation = new Conversation(this.service, {state: "battle"});
 
     this.flashTile = this.service.resources.getTile("flash", 0, 0, 1024, 768);
     this.flashTile.alpha = 0;
@@ -48,39 +44,47 @@ function Battle(service, settings) {
     this.ballTile = this.service.resources.getTile("battleBall", 0, 410, 48, 48);
     this.ballTile.alpha = 0;
 
-    this.bottombarTile = this.service.resources.getTile("battleBottombar", 0, 768 - 192, 1028, 192);
-    this.bottombarTile.alpha = 0;
+    this.messagebgTile = this.service.resources.getTile("battleMessagebg", 0, 768 - 192, 1028, 192);
+    this.messagebgTile.alpha = 0;
 
-    this.choosebgTile = this.service.resources.getTile("battleChoosebg", 554, 768 - 192 + 5, 474, 192 - 10);
-    this.choosebgTile.alpha = 0;
+    this.comandbgTile = this.service.resources.getTile("battleCommandbg", 0, 768 - 192, 1028, 192);
+    this.comandbgTile.alpha = 0;
 
-    this.fightbtnTile = this.service.resources.getTile("battleFightbtn", 590, 768 - 192 + 31, 200, 65);
+    this.fightbgTile = this.service.resources.getTile("battleFightbg", 0, 768 - 192, 1028, 192);
+    this.fightbgTile.alpha = 0;
+
+    this.fightbtnTile = this.service.resources.getTile("battleCommandBtns(0,0)", 514, 768 - 192 + 12, 252, 88);
     this.fightbtnTile.alpha = 0;
 
-    this.bagbtnTile = this.service.resources.getTile("battleBagbtn", 790, 768 - 192 + 31, 200, 65);
+    this.bagbtnTile = this.service.resources.getTile("battleCommandBtns(0,2)", 766, 768 - 192 + 12, 252, 88);
     this.bagbtnTile.alpha = 0;
 
-    this.pokemonbtnTile = this.service.resources.getTile("battlePokemonbtn", 590, 768 - 192 + 65 + 31, 200, 65);
+    this.pokemonbtnTile = this.service.resources.getTile("battleCommandBtns(0,1)", 514, 768 - 192 + 88 + 12, 252, 88);
     this.pokemonbtnTile.alpha = 0;
 
-    this.runbtnTile = this.service.resources.getTile("battleRunbtn", 790, 768 - 192 + 65 + 31, 200, 65);
+    this.runbtnTile = this.service.resources.getTile("battleCommandBtns(0,3)", 766, 768 - 192 + 88 + 12, 252, 88);
     this.runbtnTile.alpha = 0;
 
-    this.attack1Tile = this.service.resources.getTile("battleAttackbtn", 10, 768 - 192 + 10, 338, 76);
+    this.attack1Tile = this.service.resources.getTile("battleFightBtns(0,0)", 8, 768 - 192 + 12, 382, 88);
     this.attack1Tile.alpha = 0;
 
-    this.attack2Tile = this.service.resources.getTile("battleAttackbtn", 338 + 20, 768 - 192 + 10, 338, 76);
+    this.attack2Tile = this.service.resources.getTile("battleFightBtns(0,1)", 8 + 382, 768 - 192 + 12, 382, 88);
     this.attack2Tile.alpha = 0;
 
-    this.attack3Tile = this.service.resources.getTile("battleAttackbtn", 10, 768 - 96 + 10, 338, 76);
+    this.attack3Tile = this.service.resources.getTile("battleFightBtns(0,2)", 8, 768 - 192 + 12 + 88, 382, 88);
     this.attack3Tile.alpha = 0;
 
-    this.attack4Tile = this.service.resources.getTile("battleAttackbtn", 338 + 20, 768 - 96 + 10, 338, 76);
+    this.attack4Tile = this.service.resources.getTile("battleFightBtns(0,3)", 8 + 382, 768 - 192 + 12 + 88, 382, 88);
     this.attack4Tile.alpha = 0;
+
+    this.attackBackTile = this.service.resources.getTile("battleBackBtn", 778, 768 - 192 + 12, 240, 175);
+    this.attackBackTile.alpha = 0;
 }
 
-Battle.prototype._scenarioIntro1 = function(tick) {
+Battle.prototype._scenarioBattleIntroPart1 = function(tick) {
     // Transition!
+    if (tick > 180) {return;}
+
     if (tick >= 0 && tick < 5) {
         this.flashTile.alpha += 0.20;
     }
@@ -116,9 +120,7 @@ Battle.prototype._scenarioIntro1 = function(tick) {
     if (tick === 105) {
         this.backgroundTile.alpha = 1;
 
-        this.bottombarTile.alpha = 1;
-
-        this.conversation.hidden = false;
+        this.messagebgTile.alpha = 1;
     }
 
     if (tick > 105 && tick < 175) {
@@ -136,11 +138,13 @@ Battle.prototype._scenarioIntro1 = function(tick) {
         this.conversation.enqueue("Wild " + this.opponentMonster.name + " appeared!+", undefined);
         this.conversation.next();
 
-        this.service.ScenarioManager.removeScenario(this._scenarioIntro1);
+        this.service.ScenarioManager.removeScenario(this._scenarioBattleIntroPart1);
     }
 }
 
-Battle.prototype._scenarioIntro2 = function(tick) {
+Battle.prototype._scenarioBattleIntroPart2 = function(tick) {
+    if (tick > 60) {return;}
+
     if (tick === 0) {
         this.playerTile.pause = false;
     }
@@ -169,51 +173,94 @@ Battle.prototype._scenarioIntro2 = function(tick) {
 
     if (tick === 60) {
         this.conversation.enqueue("What will+" + this.playerMonster.name + " do?", function() {
-            this.state = "choose";
+            this.state = "command";
         }.bind(this));
 
-        this.service.ScenarioManager.removeScenario(this._scenarioIntro2);
+        this.service.ScenarioManager.removeScenario(this._scenarioBattleIntroPart2);
     }
 }
 
-Battle.prototype._scenarioPlayerMonsterAttack = function(tick) {
+Battle.prototype._scenarioPlayerMonsterTackle = function(tick) {
+    if (tick > 60) {return;}
+
     // 
-    if (tick > 0 && tick < 8) {
+    if (tick > 30 && tick < 38) {
         this.playerMonsterTile.renderX += 40;
         this.playerMonsterTile.renderY -= 20;
     }
-    if (tick > 8 && tick < 16) {
+    if (tick > 38 && tick < 46) {
         this.playerMonsterTile.renderX -= 40;
         this.playerMonsterTile.renderY += 20;
     }
 
     // Opponent blink
-    if (tick === 8) {
+    if (tick === 38) {
         this.opponentMonsterTile.alpha = 0;
     }
-    if (tick === 10) {
+    if (tick === 40) {
         this.opponentMonsterTile.alpha = 1;
     }
-    if (tick === 12) {
+    if (tick === 42) {
         this.opponentMonsterTile.alpha = 0;
     }
-    if (tick === 14) {
+    if (tick === 44) {
         this.opponentMonsterTile.alpha = 1;
     }
 
     // Exit scenario
-    if (tick === 18) {
-        this.service.ScenarioManager.removeScenario(this._scenarioPlayerMonsterAttack);
+    if (tick === 60) {
+        this.service.ScenarioManager.removeScenario(this._scenarioPlayerMonsterTackle);
+
+        this.conversation.enqueue(this.opponentMonster.name + " used+TACKLE!", function() {
+            this.service.ScenarioManager.addScenario(this._scenarioOpponentMonsterTackle.bind(this));
+        }.bind(this));
     }
 }
 
-Battle.prototype._normalState = function() {
+Battle.prototype._scenarioOpponentMonsterTackle = function(tick) {
+    if (tick > 60) {return;}
+
+    // 
+    if (tick > 30 && tick < 38) {
+        this.opponentMonsterTile.renderX -= 40;
+        this.opponentMonsterTile.renderY += 20;
+    }
+    if (tick > 38 && tick < 46) {
+        this.opponentMonsterTile.renderX += 40;
+        this.opponentMonsterTile.renderY -= 20;
+    }
+
+    // Opponent blink
+    if (tick === 38) {
+        this.playerMonsterTile.alpha = 0;
+    }
+    if (tick === 40) {
+        this.playerMonsterTile.alpha = 1;
+    }
+    if (tick === 42) {
+        this.playerMonsterTile.alpha = 0;
+    }
+    if (tick === 44) {
+        this.playerMonsterTile.alpha = 1;
+    }
+
+    // Exit scenario
+    if (tick === 60) {
+        this.conversation.enqueue("What will+" + this.playerMonster.name + " do?", function() {
+            this.state = "command";
+        }.bind(this));
+
+        this.service.ScenarioManager.removeScenario(this._scenarioOpponentMonsterTackle);
+    }
+}
+
+Battle.prototype._baseState = function() {
     this.fightbtnTile.setFrame(0);
     this.bagbtnTile.setFrame(0);
     this.pokemonbtnTile.setFrame(0);
     this.runbtnTile.setFrame(0);
 
-    this.choosebgTile.alpha = 0;
+    this.comandbgTile.alpha = 0;
     this.fightbtnTile.alpha = 0;
     this.bagbtnTile.alpha = 0;
     this.pokemonbtnTile.alpha = 0;
@@ -224,14 +271,16 @@ Battle.prototype._normalState = function() {
     this.attack3Tile.setFrame(0);
     this.attack4Tile.setFrame(0);
 
+    this.fightbgTile.alpha = 0;
     this.attack1Tile.alpha = 0;
     this.attack2Tile.alpha = 0;
     this.attack3Tile.alpha = 0;
     this.attack4Tile.alpha = 0;
+    this.attackBackTile.alpha = 0;
 }
 
-Battle.prototype._choose = function() {
-    this.choosebgTile.alpha = 1;
+Battle.prototype._commandState = function() {
+    this.comandbgTile.alpha = 1;
     this.fightbtnTile.alpha = 1;
     this.bagbtnTile.alpha = 1;
     this.pokemonbtnTile.alpha = 1;
@@ -241,7 +290,9 @@ Battle.prototype._choose = function() {
         this.fightbtnTile.setFrame(1);
 
         if (this.service.listeners.click) {
-            this.state = "chooseattack";
+            this.service.events.push(function() {
+                this.service.battle.state = "fight";
+            });
         }
     }
 
@@ -265,23 +316,39 @@ Battle.prototype._choose = function() {
         this.runbtnTile.setFrame(1);
 
         if (this.service.listeners.click === true) {
-            this.state = "chooserun";
+            this.service.events.push(function() {
+            this.service.battleCanvas.style.zIndex = 0;
+            this.service.worldCanvas.style.zIndex = 1;
+
+            this.service.battle.audio.pause();
+
+            this.service.map.audio.volume = 0;
+            this.service.playAudio(this.service.map.audio);
+
+            this.service.state = "world";
+        });
         }
     }
 }
 
-Battle.prototype._chooseAttack = function() {
+Battle.prototype._fightState = function() {
+    this.fightbgTile.alpha = 1;
     this.attack1Tile.alpha = 1;
     this.attack2Tile.alpha = 1;
     this.attack3Tile.alpha = 1;
     this.attack4Tile.alpha = 1;
+    this.attackBackTile.alpha = 1;
 
     if (this.attack1Tile.pointerInside()) {
         this.attack1Tile.setFrame(1);
 
         if (this.service.listeners.click) {
             console.log("attack1!");
-            this.service.ScenarioManager.addScenario(this._scenarioPlayerMonsterAttack.bind(this));
+            this.state = "";
+            this.conversation.enqueue(this.playerMonster.name + " used+TACKLE!", function() {
+                this.service.ScenarioManager.addScenario(this._scenarioPlayerMonsterTackle.bind(this));
+            }.bind(this));
+            // this.conversation.next();
         }
     }
 
@@ -306,47 +373,45 @@ Battle.prototype._chooseAttack = function() {
 
         if (this.service.listeners.click) {
             console.log("attack4!");
-
-            this.state = "choose";
         }
     }
+
+    if (this.attackBackTile.pointerInside()) {
+        if (this.service.listeners.click) {
+            this.state = "command";
+        }
+    }
+}
+
+Battle.prototype._attackState = function() {
+    this.service.ScenarioManager.addScenario(this._scenarioPlayerMonsterTackle.bind(this));
 }
 
 Battle.prototype.update = function() {
     this.tick += 1;
 
-    this._normalState();
+    this._baseState();
 
     if (this.tick === 1) {
-        this.service.ScenarioManager.addScenario(this._scenarioIntro1.bind(this));
+        this.service.ScenarioManager.addScenario(this._scenarioBattleIntroPart1.bind(this));
     }
 
     if (this.tick === 182) {
         this.conversation.enqueue("Go! " + this.playerMonster.name + "!+", function() {
-            this.service.ScenarioManager.addScenario(this._scenarioIntro2.bind(this));
+            this.service.ScenarioManager.addScenario(this._scenarioBattleIntroPart2.bind(this));
         }.bind(this));
     }
 
-    if (this.state === "choose") {
-        this._choose();
+    if (this.state === "command") {
+        this._commandState();
     }
 
-    if (this.state === "chooseattack") {
-        this._chooseAttack();
+    if (this.state === "fight") {
+        this._fightState();
     }
 
-    if (this.state === "chooserun") {
-        this.service.events.push(function() {
-            this.service.battleCanvas.style.zIndex = 0;
-            this.service.worldCanvas.style.zIndex = 1;
-
-            this.service.battle.audio.pause();
-
-            this.service.map.audio.volume = 0;
-            this.service.playAudio(this.service.map.audio);
-
-            this.service.state = "world";
-        });
+    if (this.state === "attack") {
+        this._attackState();
     }
 
     /**
@@ -382,27 +447,35 @@ Battle.prototype.render = function() {
 
     this.ballTile.render(context);
 
-    this.bottombarTile.render(context);
+    this.messagebgTile.render(context);
+
+    this.comandbgTile.render(context);
+
+    this.fightbgTile.render(context);
 
     this.conversation.render(context);
 
-    this.choosebgTile.render(context);
+    if (this.state === "command") {
+        this.fightbtnTile.render(context);
+        
+        this.bagbtnTile.render(context);
 
-    this.fightbtnTile.render(context);
-    
-    this.bagbtnTile.render(context);
+        this.pokemonbtnTile.render(context);
+        
+        this.runbtnTile.render(context);
+    }
 
-    this.pokemonbtnTile.render(context);
-    
-    this.runbtnTile.render(context);
+    if (this.state === "fight") {
+        this.attack1Tile.render(context);
 
-    this.attack1Tile.render(context);
+        this.attack2Tile.render(context);
 
-    this.attack2Tile.render(context);
+        this.attack3Tile.render(context);
 
-    this.attack3Tile.render(context);
+        this.attack4Tile.render(context);
 
-    this.attack4Tile.render(context);
+        this.attackBackTile.render(context);
+    }
 }
 
 module.exports = Battle;
@@ -413,9 +486,14 @@ const Tile = require("./Tile.js");
 function Conversation(service, settings) {
     this.service = service;
 
-    this.backgroundTile = this.service.resources.getTile("conversationBg", 0, 768 - 180 - 5, 1024, 180);
+    if (settings.state === "battle") {
+        this.backgroundTile = this.service.resources.getTile("conversationBattleBg", 0, 768 - 192, 1024, 192);
+    } else {
+        this.backgroundTile = this.service.resources.getTile("conversationBg", 0, 768 - 192, 1024, 192);
+    }
 
-    this.nextbtnTile = this.service.resources.getTile("conversationNextbtn", 840, 610, 120, 120);
+    this.arrowTile = this.service.resources.getTile("conversationArrow", 880, 768 - 192 + 50, 56, 80);
+    this.arrowTile.alpha = 0;
 
     this.texts = ["+"];
 
@@ -424,10 +502,6 @@ function Conversation(service, settings) {
     this.line1 = "";
     this.line2 = "";
 
-    // Hides the covnversation, do not render the converation if true
-    this.hidden = settings.hidden ? settings.hidden : false;
-
-    // this.typing = false;
     this.nextable = true;
 }
 
@@ -492,15 +566,17 @@ Conversation.prototype.update = function() {
 
     this._updateText();
 
-    // If there is no next -> disable next
+    // If there is no next -> make conversaiton not nextable
     if (this.texts[1] === undefined) {
         this.nextable = false;
     }
 
-    if (this.nextable === false) {
-        this.nextbtnTile.setFrame(0);
+    this.arrowTile.update();
+
+    if (this.nextable === true) {
+        this.arrowTile.alpha = 1;
     } else {
-        this.nextbtnTile.setFrame(1);
+        this.arrowTile.alpha = 0;
     }
 
     // If clicked at conversation bar
@@ -510,22 +586,20 @@ Conversation.prototype.update = function() {
 }
 
 Conversation.prototype.render = function(context) {
-    // Do not render if conversation should be hidden
-    if (this.hidden === true) {
-        return;
-    }
-
     this.backgroundTile.render(context);
 
-    this.nextbtnTile.render(context);
+    this.arrowTile.render(context);
 
-    context.font = "30px 'Press Start 2P'";
-    context.fillStyle = "rgba(0,0,0,0.8)";
-    context.fillText(this.line1, 75, 660);
+    context.font = "30px 'ConversationFont'";
+    context.fillStyle = "rgba(0,0,0,0.7)";
+    context.shadowColor = "rgba(0,0,0,0.2)";
+    context.shadowOffsetX = 5;
+    context.shadowOffsetY = 3;
+    context.shadowBlur = 3;
 
-    context.font = "30px 'Press Start 2P'";
-    context.fillStyle = "rgba(0,0,0,0.8)";
-    context.fillText(this.line2, 75, 720);
+    context.fillText(this.line1, 70, 662);
+
+    context.fillText(this.line2, 70, 717);
 }
 
 module.exports = Conversation;
@@ -1088,6 +1162,8 @@ Loader.prototype._loadImages = function() {
     for (let i = 0; i < this.tiles.length; i++) {
         let tile = this.tiles[i];
 
+        if (tile.image === "-") {continue;}
+
         imagesSrc.push(tile.src);
     }
 
@@ -1235,6 +1311,10 @@ Loader.prototype.update = function()
 
         for (let i = 0; i < this.tiles.length; i++) {
             let tile = this.tiles[i];
+
+            if (tile.image === "-") {
+                continue;
+            }
 
             if (tile.image === undefined || tile.image.complete === false || tile.image.naturalHeight === 0) {
                 loading = true;
@@ -1700,6 +1780,8 @@ function Tile(service, settings) {
 
     this.src = settings.src;
 
+    // if (this.src === null) {this.image === "no image!";}
+
     this.tileWidth = settings.tileWidth ? settings.tileWidth : 0;
     this.tileHeight = settings.tileHeight ? settings.tileHeight : 0;
 
@@ -1797,7 +1879,7 @@ Tile.prototype.update = function() {
 
 Tile.prototype.render = function(context, rX, rY) {
     // Do not render if tile has no image
-    if (this.image === undefined) {
+    if (this.image === undefined || this.image === "-") {
         // console.log("no image!");
 
         return;
@@ -1992,7 +2074,6 @@ module.exports=[
         "crySrc": "audio/monster/130Cry.wav"
     }
 ]
-
 },{}],14:[function(require,module,exports){
 module.exports={
     "monsters": [
@@ -2044,6 +2125,24 @@ module.exports=[
         "spriteHeight": 128,
         "numberOfFrames": 8,
         "updateFrequency": 7
+    },
+    {
+        "name": "battleCommandBtns",
+        "src": "img/battle/battleCommandButtons.png",
+        "tileWidth": 130,
+        "tileHeight": 46,
+        "spriteWidth": 130,
+        "spriteHeight": 414,
+        "numberOfFrames": 2
+    },
+    {
+        "name": "battleFightBtns",
+        "src": "img/battle/battleFightButtons.png",
+        "tileWidth": 192,
+        "tileHeight": 46,
+        "spriteWidth": 192,
+        "spriteHeight": 874,
+        "numberOfFrames": 2
     }
 ]
 
@@ -2072,48 +2171,6 @@ module.exports=[
         "src": "img/house1layer2.png",
         "tileWidth": 3200,
         "tileHeight": 3200
-    },
-    {
-        "name": "battleFightbtn",
-        "src": "img/battle/fightbtn.png",
-        "tileWidth": 130,
-        "tileHeight": 46,
-        "numberOfFrames": 2,
-        "loop": false,
-        "pause": true
-    },
-    {
-        "name": "battleBagbtn",
-        "src": "img/battle/bagbtn.png",
-        "tileWidth": 130,
-        "tileHeight": 46,
-        "numberOfFrames": 2,
-        "loop": false,
-        "pause": true
-    },
-    {
-        "name": "battlePokemonbtn",
-        "src": "img/battle/pokemonbtn.png",
-        "tileWidth": 130,
-        "tileHeight": 46,
-        "numberOfFrames": 2,
-        "loop": false,
-        "pause": true
-    },
-    {
-        "name": "battleRunbtn",
-        "src": "img/battle/runbtn.png",
-        "tileWidth": 130,
-        "tileHeight": 46,
-        "numberOfFrames": 2,
-        "loop": false,
-        "pause": true
-    },
-    {
-        "name": "battleBottombar",
-        "src": "img/battle/bottombar2.png",
-        "tileWidth": 1028,
-        "tileHeight": 192
     },
     {
         "name": "battleBall",
@@ -2159,18 +2216,26 @@ module.exports=[
     },
     {
         "name": "conversationBg",
-        "src": "img/conversation/background_battle.png",
-        "tileWidth": 1028,
-        "tileHeight": 179
+        "src": "img/conversation/background_normal.png",
+        "tileWidth": 512,
+        "tileHeight": 96
     },
     {
-        "name": "conversationNextbtn",
-        "src": "img/conversation/nextBtn.png",
-        "tileWidth": 120,
-        "tileHeight": 120,
-        "numberOfFrames": 2,
-        "loop": false,
-        "pause": true
+        "name": "conversationBattleBg",
+        "image": "-",
+        // "src": "img/conversation/background_battle.png",
+        "tileWidth": 512,
+        "tileHeight": 96
+    },
+    {
+        "name": "conversationArrow",
+        "src": "img/conversation/arrow.png",
+        "tileWidth": 28,
+        "tileHeight": 40,
+        "numberOfFrames": 8,
+        "updateFrequency": 3,
+        "loop": true,
+        "pause": false
     },
     {
         "name": "grass",
@@ -2182,22 +2247,37 @@ module.exports=[
         "pause": true
     },
     {
-        "name": "battleAttackbtn",
-        "src": "img/battle/attackbtn.png",
-        "tileWidth": 300,
-        "tileHeight": 100,
+        "name": "battleMessagebg",
+        "src": "img/battle/battleMessagebg.png",
+        "tileWidth": 512,
+        "tileHeight": 96,
         "numberOfFrames": 2,
         "loop": false,
         "pause": true
     },
     {
-        "name": "battleChoosebg",
-        "src": "img/battle/choosebg.png",
-        "tileWidth": 605,
-        "tileHeight": 238,
+        "name": "battleCommandbg",
+        "src": "img/battle/battleCommandbg.png",
+        "tileWidth": 512,
+        "tileHeight": 96,
         "numberOfFrames": 2,
         "loop": false,
         "pause": true
+    },
+    {
+        "name": "battleFightbg",
+        "src": "img/battle/battleFightbg.png",
+        "tileWidth": 512,
+        "tileHeight": 96,
+        "numberOfFrames": 2,
+        "loop": false,
+        "pause": true
+    },
+    {
+        "name": "battleBackBtn",
+        "src": "img/battle/backBtn.png",
+        "tileWidth": 120,
+        "tileHeight": 88
     }
 ]
 
