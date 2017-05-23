@@ -8,11 +8,26 @@ function Battle(service, settings) {
 
     this.state = "";
 
-    this.playerMonster = this.service.resources.monsters.find( monster => monster.name === this.service.save.monsters[0].name );
+    let index = 0;
+    for (let i = 0; i < this.service.resources.monsters.length; i++) {
+        if (this.service.resources.monsters[i].name === this.service.save.monsters[0].name) {
+            index = i;
+            break;
+        }
+    }
+    this.playerMonster = this.service.resources.getMonster(index);
+
+    // Read from save file
+    this.playerMonster.level = this.service.save.monsters[0].level;
+    this.playerMonster.maxHP = this.service.save.monsters[0].maxHP ? this.service.save.monsters[0].maxHP : this.playerMonster.maxHP;
+    this.playerMonster.HP = this.service.save.monsters[0].HP ? this.service.save.monsters[0].HP : this.playerMonster.maxHP;
+
     this.playerMonster.tileBack.renderX = 86;
     this.playerMonster.tileBack.renderY = 768 - 340 - 192 + 60;
 
     this.opponentMonster = settings.opponent;
+    this.opponentMonster.maxHP = Math.round(this.opponentMonster.maxHP * Math.pow(1.20, this.opponentMonster.level-1));
+    this.opponentMonster.HP = this.opponentMonster.maxHP;
 
     this.audio = this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/pkmn-fajt.mp3");
     this.audio.volume = 1;
@@ -35,31 +50,36 @@ function Battle(service, settings) {
     this.playerMonsterTile = this.playerMonster.tileBack;
     this.playerMonsterTile.alpha = 0;
 
-    this.opponentMonsterTile = this.opponentMonster.tileFront;
-    this.opponentMonsterTile.renderX = 0 - 256 - this.opponentMonsterTile.renderWidth/2;
-    // this.opponentMonster.tileFront.renderY = 80;
+    this.playerBoxTile = this.service.resources.getTile("battlePlayerBox", 1024 - 393, 430, 393, 93);
+    this.playerBoxTile.alpha = 0;
 
     this.opponentbaseTile = this.service.resources.getTile("battleOpponentbase", -512, 200, 512, 256);
+
+    this.opponentMonsterTile = this.opponentMonster.tileFront;
+    this.opponentMonsterTile.renderX = 0 - 256 - this.opponentMonsterTile.renderWidth/2;
+
+    this.opponentBoxTile = this.service.resources.getTile("battleOpponentBox", 70, 100, 393, 93);
+    this.opponentBoxTile.alpha = 0;
 
     this.ballTile = this.service.resources.getTile("battleBall", 0, 410, 48, 48);
     this.ballTile.alpha = 0;
 
-    this.messagebgTile = this.service.resources.getTile("battleMessagebg", 0, 768 - 192, 1028, 192);
+    this.messagebgTile = this.service.resources.getTile("battleMessagebg", 0, 768 - 192, 1024, 192);
     this.messagebgTile.alpha = 0;
 
-    this.comandbgTile = this.service.resources.getTile("battleCommandbg", 0, 768 - 192, 1028, 192);
+    this.comandbgTile = this.service.resources.getTile("battleCommandbg", 0, 768 - 192, 1024, 192);
     this.comandbgTile.alpha = 0;
 
-    this.fightbgTile = this.service.resources.getTile("battleFightbg", 0, 768 - 192, 1028, 192);
+    this.fightbgTile = this.service.resources.getTile("battleFightbg", 0, 768 - 192, 1024, 192);
     this.fightbgTile.alpha = 0;
 
-    this.fightbtnTile = this.service.resources.getTile("battleCommandBtns(0,0)", 514, 768 - 192 + 12, 252, 88);
+    this.fightbtnTile = this.service.resources.getTile("battleCommandBtns(0,0)", 512, 768 - 192 + 12, 252, 88);
     this.fightbtnTile.alpha = 0;
 
     this.bagbtnTile = this.service.resources.getTile("battleCommandBtns(0,2)", 766, 768 - 192 + 12, 252, 88);
     this.bagbtnTile.alpha = 0;
 
-    this.pokemonbtnTile = this.service.resources.getTile("battleCommandBtns(0,1)", 514, 768 - 192 + 88 + 12, 252, 88);
+    this.pokemonbtnTile = this.service.resources.getTile("battleCommandBtns(0,1)", 512, 768 - 192 + 88 + 12, 252, 88);
     this.pokemonbtnTile.alpha = 0;
 
     this.runbtnTile = this.service.resources.getTile("battleCommandBtns(0,3)", 766, 768 - 192 + 88 + 12, 252, 88);
@@ -135,6 +155,8 @@ Battle.prototype._scenarioBattleIntroPart1 = function(tick) {
         this.opponentMonsterTile.pause = false;
         this.opponentMonster.cry.play();
 
+        this.opponentBoxTile.alpha = 1;
+
         this.conversation.enqueue("Wild " + this.opponentMonster.name + " appeared!+", undefined);
         this.conversation.next();
 
@@ -168,6 +190,8 @@ Battle.prototype._scenarioBattleIntroPart2 = function(tick) {
         this.playerMonsterTile.pause = false;
         this.playerMonster.cry.play();
 
+        this.playerBoxTile.alpha = 1;
+
         this.ballTile.alpha = 0;
     }
 
@@ -193,6 +217,16 @@ Battle.prototype._scenarioPlayerMonsterTackle = function(tick) {
         this.playerMonsterTile.renderY += 20;
     }
 
+    // Damage!
+    if (tick === 38) {
+        this.opponentMonster.HP -= Math.round(this.playerMonster.strength * Math.pow(1.15, this.playerMonster.level-1));
+
+        if (this.opponentMonster.HP < 0) {this.opponentMonster.HP = 0;}
+
+        // Play damage sound!
+        this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/normaldamage.wav").play();
+    }
+
     // Opponent blink
     if (tick === 38) {
         this.opponentMonsterTile.alpha = 0;
@@ -209,11 +243,17 @@ Battle.prototype._scenarioPlayerMonsterTackle = function(tick) {
 
     // Exit scenario
     if (tick === 60) {
-        this.service.ScenarioManager.removeScenario(this._scenarioPlayerMonsterTackle);
+        if (this.opponentMonster.HP > 0) {
+            this.conversation.enqueue("Enemy " + this.opponentMonster.name + "+used TACKLE!", function() {
+                this.service.ScenarioManager.addScenario(this._scenarioOpponentMonsterTackle.bind(this));
+            }.bind(this));
+        } else {
+            this.conversation.enqueue("Enemy " + this.opponentMonster.name + "+fainted!", function() {
+                this.service.ScenarioManager.addScenario(this._scenarioOpponentMonsterFaint.bind(this));
+            }.bind(this));
+        }
 
-        this.conversation.enqueue(this.opponentMonster.name + " used+TACKLE!", function() {
-            this.service.ScenarioManager.addScenario(this._scenarioOpponentMonsterTackle.bind(this));
-        }.bind(this));
+        this.service.ScenarioManager.removeScenario(this._scenarioPlayerMonsterTackle);
     }
 }
 
@@ -230,7 +270,17 @@ Battle.prototype._scenarioOpponentMonsterTackle = function(tick) {
         this.opponentMonsterTile.renderY -= 20;
     }
 
-    // Opponent blink
+    // Damage!
+    if (tick === 38) {
+        this.playerMonster.HP -= Math.round(this.opponentMonster.strength * Math.pow(1.15, this.opponentMonster.level-1));
+
+        if (this.playerMonster.HP < 0) {this.playerMonster.HP = 0;}
+
+        // Play damage sound!
+        this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/normaldamage.wav").play();
+    }
+
+    // Blink!
     if (tick === 38) {
         this.playerMonsterTile.alpha = 0;
     }
@@ -246,11 +296,101 @@ Battle.prototype._scenarioOpponentMonsterTackle = function(tick) {
 
     // Exit scenario
     if (tick === 60) {
-        this.conversation.enqueue("What will+" + this.playerMonster.name + " do?", function() {
-            this.state = "command";
-        }.bind(this));
+        if (this.playerMonster.HP > 0) {
+            this.conversation.enqueue("What will+" + this.playerMonster.name + " do?", function() {
+                this.state = "command";
+            }.bind(this));
+        } else {
+            this.conversation.enqueue(this.playerMonster.name + "+fainted!", function() {
+                this.service.ScenarioManager.addScenario(this._scenarioPlayerMonsterFaint.bind(this));
+            }.bind(this));
+        }
 
         this.service.ScenarioManager.removeScenario(this._scenarioOpponentMonsterTackle);
+    }
+}
+
+Battle.prototype._scenarioPlayerMonsterHeal = function(tick) {
+    if (tick === 1) {
+        this.playerMonster.HP = Math.round(this.playerMonster.HP + this.playerMonster.maxHP * 0.5);
+
+        if (this.playerMonster.HP > this.playerMonster.maxHP) {
+            this.playerMonster.HP = this.playerMonster.maxHP;
+        }
+
+        this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/Refresh.mp3").play();
+    }
+
+    if (tick === 40) {
+        this.conversation.enqueue("Enemy " + this.opponentMonster.name + "+used TACKLE!", function() {
+            this.service.ScenarioManager.addScenario(this._scenarioOpponentMonsterTackle.bind(this));
+        }.bind(this));
+
+        this.service.ScenarioManager.removeScenario(this._scenarioPlayerMonsterHeal);
+    }
+}
+
+Battle.prototype._scenarioPlayerMonsterFaint = function(tick) {
+    if (tick > 30) {return;}
+
+    if (tick === 1) {
+        this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/faint.wav").play();
+    }
+
+    if (tick > 0 && tick < 20) {
+        this.playerMonsterTile.renderY += 10;
+        this.playerMonsterTile.tileHeight -= 10;
+    }
+
+    if (tick === 30) {
+        // Game over :(
+        this.service.save.monsters[0].level = 1;
+        this.service.save.monsters[0].maxHP = null;
+        this.service.save.monsters[0].HP = null;
+
+        this.playerMonster.level = 1;
+        this.conversation.enqueue("Game over!+" + this.playerMonster.name + " is now lvl " + this.service.save.monsters[0].level + ". :'''(", undefined);
+        this.conversation.enqueue("", function() {
+            this.service.setState("world");
+        }.bind(this));
+
+        this.service.ScenarioManager.removeScenario(this._scenarioPlayerMonsterFaint);
+    }
+}
+
+Battle.prototype._scenarioOpponentMonsterFaint = function(tick) {
+    if (tick > 30) {return;}
+
+    if (tick === 1) {
+        this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/faint.wav").play();
+    }
+
+    if (tick > 0 && tick < 20) {
+        this.opponentMonsterTile.renderY += 10;
+        this.opponentMonsterTile.tileHeight -= 10;
+    }
+
+    if (tick === 30) {
+        this.conversation.enqueue(this.playerMonster.name + " reached lvl " + (this.playerMonster.level + 1) + "!+Yaaaaaaaay!", function() {
+            // Play new level sound!
+            this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/expfull.wav").play();
+
+            // Update player monster (for visual)
+            this.playerMonster.level += 1;
+            this.playerMonster.HP = Math.round(this.playerMonster.HP * 1.20);
+            this.playerMonster.maxHP = Math.round(this.playerMonster.maxHP * 1.20);
+
+            // Update save file according to player monster
+            this.service.save.monsters[0].level = this.playerMonster.level;
+            this.service.save.monsters[0].HP = this.playerMonster.HP;
+            this.service.save.monsters[0].maxHP = this.playerMonster.maxHP;
+        }.bind(this));
+
+        this.conversation.enqueue("", function() {
+            this.service.setState("world");
+        }.bind(this));
+
+        this.service.ScenarioManager.removeScenario(this._scenarioOpponentMonsterFaint);
     }
 }
 
@@ -301,6 +441,11 @@ Battle.prototype._commandState = function() {
 
         if (this.service.listeners.click === true) {
             console.log("bag");
+            this.state = "";
+            this.conversation.enqueue("You do not own a bag!+", undefined);
+            this.conversation.enqueue("What will+" + this.playerMonster.name + " do?", function() {
+                this.state = "command";
+            }.bind(this));
         }
     }
 
@@ -309,6 +454,11 @@ Battle.prototype._commandState = function() {
 
         if (this.service.listeners.click === true) {
             console.log("pokemon");
+            this.state = "";
+            this.conversation.enqueue("Your monsters' name is:+" + this.playerMonster.name, undefined);
+            this.conversation.enqueue("What will+" + this.playerMonster.name + " do?", function() {
+                this.state = "command";
+            }.bind(this));
         }
     }
 
@@ -316,17 +466,21 @@ Battle.prototype._commandState = function() {
         this.runbtnTile.setFrame(1);
 
         if (this.service.listeners.click === true) {
-            this.service.events.push(function() {
-            this.service.battleCanvas.style.zIndex = 0;
-            this.service.worldCanvas.style.zIndex = 1;
+            this.state = "";
 
-            this.service.battle.audio.pause();
-
-            this.service.map.audio.volume = 0;
-            this.service.playAudio(this.service.map.audio);
-
-            this.service.state = "world";
-        });
+            if (this.opponentMonster.level > this.playerMonster.level) {
+                this.conversation.enqueue("Can not escape+from a higher level monster!", undefined);
+                this.conversation.enqueue("What will+" + this.playerMonster.name + " do?", function() {
+                    this.state = "command";
+                }.bind(this));
+            } else {
+                this.conversation.enqueue("Got away safely!+", undefined);
+                this.conversation.enqueue("", function() {
+                    this.service.events.push(function() {
+                        this.service.setState("world");
+                    });
+                }.bind(this));
+            }
         }
     }
 }
@@ -345,7 +499,7 @@ Battle.prototype._fightState = function() {
         if (this.service.listeners.click) {
             console.log("attack1!");
             this.state = "";
-            this.conversation.enqueue(this.playerMonster.name + " used+TACKLE!", function() {
+            this.conversation.enqueue(this.playerMonster.name + "+used TACKLE!", function() {
                 this.service.ScenarioManager.addScenario(this._scenarioPlayerMonsterTackle.bind(this));
             }.bind(this));
             // this.conversation.next();
@@ -356,6 +510,10 @@ Battle.prototype._fightState = function() {
         this.attack2Tile.setFrame(1);
 
         if (this.service.listeners.click) {
+            this.state = "";
+            this.conversation.enqueue(this.playerMonster.name + "+used HEAL!", function() {
+                this.service.ScenarioManager.addScenario(this._scenarioPlayerMonsterHeal.bind(this));
+            }.bind(this));
             console.log("attack2!");
         }
     }
@@ -439,11 +597,45 @@ Battle.prototype.render = function() {
 
     this.opponentMonsterTile.render(context);
 
+    this.opponentBoxTile.render(context);
+
+    // If box is visible -> also display name, lvl, hp
+    if (this.opponentBoxTile.alpha === 1) {
+        context.save();
+
+        context.font = "28px 'ConversationFont'";
+        context.fillStyle = "rgba(0,0,0,0.8)";
+
+        context.fillText(this.opponentMonster.name, 85, 148);
+        context.font = "20px 'ConversationFont'";
+        context.fillText("Lvl:" + this.opponentMonster.level, 85, 180);
+        context.fillText(this.opponentMonster.HP + "/" + this.opponentMonster.maxHP, 270, 180);
+
+        context.restore();
+    }
+
     this.playerbaseTile.render(context);
 
     this.playerMonsterTile.render(context);
 
     this.playerTile.render(context);
+
+    this.playerBoxTile.render(context);
+
+    // If box is visible -> also display name, lvl, hp
+    if (this.playerBoxTile.alpha === 1) {
+        context.save();
+
+        context.font = "28px 'ConversationFont'";
+        context.fillStyle = "rgba(0,0,0,0.8)";
+
+        context.fillText(this.playerMonster.name, this.playerBoxTile.renderX + 50, this.playerBoxTile.renderY + 48);
+        context.font = "20px 'ConversationFont'";
+        context.fillText("Lvl:" + this.playerMonster.level, this.playerBoxTile.renderX + 50, this.playerBoxTile.renderY + 80);
+        context.fillText(this.playerMonster.HP + "/" + this.playerMonster.maxHP, this.playerBoxTile.renderX + 235, this.playerBoxTile.renderY + 80);
+
+        context.restore();
+    }
 
     this.ballTile.render(context);
 
@@ -451,9 +643,9 @@ Battle.prototype.render = function() {
 
     this.comandbgTile.render(context);
 
-    this.fightbgTile.render(context);
-
     this.conversation.render(context);
+
+    this.fightbgTile.render(context);
 
     if (this.state === "command") {
         this.fightbtnTile.render(context);
@@ -466,13 +658,21 @@ Battle.prototype.render = function() {
     }
 
     if (this.state === "fight") {
+        context.save();
+        context.font = "28px 'ConversationFont'";
+        context.fillStyle = "rgba(0,0,0,0.8)";
+
         this.attack1Tile.render(context);
+        context.fillText("Tackle", this.attack1Tile.renderX + 60, this.attack1Tile.renderY + 55);
 
         this.attack2Tile.render(context);
+        context.fillText("Heal", this.attack2Tile.renderX + 60, this.attack2Tile.renderY + 55);
 
-        this.attack3Tile.render(context);
+        context.restore();
 
-        this.attack4Tile.render(context);
+        // this.attack3Tile.render(context);
+
+        // this.attack4Tile.render(context);
 
         this.attackBackTile.render(context);
     }
@@ -590,6 +790,8 @@ Conversation.prototype.render = function(context) {
 
     this.arrowTile.render(context);
 
+    context.save();
+
     context.font = "30px 'ConversationFont'";
     context.fillStyle = "rgba(0,0,0,0.7)";
     context.shadowColor = "rgba(0,0,0,0.2)";
@@ -600,6 +802,8 @@ Conversation.prototype.render = function(context) {
     context.fillText(this.line1, 70, 662);
 
     context.fillText(this.line2, 70, 717);
+
+    context.restore();
 }
 
 module.exports = Conversation;
@@ -846,6 +1050,7 @@ function Game() {
      * Initialize service
      */
     this.service = require("./InitializeService.js")();
+    this.service.setState.bind(this);
 
     // Load save file
     this.service.save = require("./resources/savefile.json");
@@ -1001,6 +1206,21 @@ module.exports = function() {
     let service = {};
 
     // Add some nice functions to the service
+    service.setState = function(state) {
+        if (state === "world") {
+            service.battleCanvas.style.zIndex = 0;
+            service.worldCanvas.style.zIndex = 1;
+
+            service.pauseAudio(service.battle.audio);
+            // service.battle.audio.pause();
+
+            service.map.audio.volume = 0;
+            service.playAudio(service.map.audio);
+
+            service.state = "world";
+        }
+    }
+
     service.pauseAudio = function(audio) {
         let fadeAudio = setInterval(function() {
             if (audio.volume <= 0.010) {
@@ -1044,8 +1264,6 @@ function Loader(service, settings)
     this.service = service;
 
     this.service.resources = {};
-    // this.service.resources.tiles = [];
-    // this.service.resources.monsters = [];
 
     this.service.resources.getTile = function(tilename, renderX, renderY, renderWidth, renderHeight) {
         // Get the tile template
@@ -1064,6 +1282,25 @@ function Loader(service, settings)
         tile.renderHeight = renderHeight;
 
         return tile;
+    }.bind(this);
+
+    this.service.resources.getMonster = function(index) {
+        // let index = this.service.tick % this.service.resources.monsters.length;
+
+        let monsterTemplate = this.service.resources.monsters[index];
+
+        let monster = {};
+
+        monster.id = monsterTemplate.id;
+        monster.name = monsterTemplate.name;
+        monster.HP = monsterTemplate.maxHP;
+        monster.maxHP = monsterTemplate.maxHP;
+        monster.strength = monsterTemplate.strength;
+        monster.tileFront = monsterTemplate.tileFront.copy();
+        monster.tileBack = monsterTemplate.tileBack.copy();
+        monster.cry = monsterTemplate.cry;
+
+        return monster;
     }.bind(this);
 
     this.loadTick = 0;
@@ -1221,7 +1458,11 @@ Loader.prototype._loadAudios = function() {
     let audiosSrc = [
         "audio/music1.mp3",
         "audio/music2.mp3",
-        "audio/pkmn-fajt.mp3"
+        "audio/pkmn-fajt.mp3",
+        "audio/normaldamage.wav",
+        "audio/faint.wav",
+        "audio/Refresh.mp3",
+        "audio/expfull.wav"
     ];
 
     // Make an audio element for every audio src
@@ -1480,8 +1721,17 @@ function MapManager(service, {}) {
             this.service.map.audio.pause();
             this.service.map.audio.volume = 0;
 
-            let monsters = this.service.resources.monsters;
-            this.service.battle = new Battle(this.service, {opponent: monsters[this.service.tick % monsters.length]});
+            // Decide what monster to battle
+            // Depending on where player is standing there are different monster possibilites
+
+            // If on bridge -> snorlax!
+            if (true) {
+
+            }
+            let monster = this.service.resources.getMonster(this.service.tick % this.service.resources.monsters.length);
+            monster.level = 3;
+            this.service.battle = new Battle(this.service, {opponent: monster});
+            // this.service.battle = new Battle(this.service, {opponent: monsters[this.service.tick % monsters.length]});
 
             this.service.worldCanvas.style.zIndex = -1;
             this.service.battleCanvas.style.zIndex = 1;
@@ -1489,7 +1739,21 @@ function MapManager(service, {}) {
     };
     this.waterEvent = function() {
         this.service.coolguy.setState("water");
-    }
+    };
+    this.snorlaxEvent = function() {
+        this.service.state = "battle";
+
+        this.service.map.audio.pause();
+        this.service.map.audio.volume = 0;
+
+        let snorlax = this.service.resources.getMonster(3);
+        snorlax.level = 20;
+
+        this.service.battle = new Battle(this.service, {opponent: snorlax});
+
+        this.service.worldCanvas.style.zIndex = -1;
+        this.service.battleCanvas.style.zIndex = 1;
+    };
 }
 
 MapManager.prototype.getMap = function(mapName) {
@@ -1510,8 +1774,8 @@ MapManager.prototype.createStartMap = function() {
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
         [1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1],
         [1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1],
-        [1,1,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1,1,0,0,0,0,1,1],
-        [1,1,1,1,1,1,1,1,1,1,1,0,0,0,1,1,0,0,1,1,1,1,1,1],
+        [1,1,0,0,0,0,0,0,0,1,1,5,5,5,1,1,1,1,0,0,0,0,1,1],
+        [1,1,1,1,1,1,1,1,1,1,1,5,5,5,1,1,0,0,1,1,1,1,1,1],
         [1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,1,1,1,1,1,1],
         [1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
         [1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
@@ -1559,6 +1823,13 @@ MapManager.prototype.createStartMap = function() {
 
     let audio = this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/music1.mp3");
 
+    let snorlaxTile = this.service.resources.getMonster(3).tileFront;
+    snorlaxTile.pause = false;
+    snorlaxTile.loop = true;
+    snorlaxTile.renderX = 11*32;
+    snorlaxTile.renderY = 2*32;
+    snorlaxTile.renderWidth = 96;
+    snorlaxTile.renderHeight = 96;
     let tiles = [
         this.service.resources.getTile("grass", 8*32, 30*29, 32, 32),
         this.service.resources.getTile("grass", 9*32, 30*29, 32, 32),
@@ -1611,7 +1882,9 @@ MapManager.prototype.createStartMap = function() {
         this.service.resources.getTile("sea(2,7)", 17*32, 37*32, 32, 32),
         this.service.resources.getTile("sea(3,7)", 18*32, 37*32, 32, 32),
         this.service.resources.getTile("sea(4,7)", 19*32, 37*32, 32, 32),
-        this.service.resources.getTile("sea(5,7)", 20*32, 37*32, 32, 32)
+        this.service.resources.getTile("sea(5,7)", 20*32, 37*32, 32, 32),
+
+        snorlaxTile
     ];
 
     let map = new Map(this.service, {
@@ -1645,6 +1918,11 @@ MapManager.prototype.createStartMap = function() {
             // Water! Swim!
             if (collisionMap[y][x] === 4) {
                 map.attachEvent(x, y, this.waterEvent);
+            }
+
+            // Snorlax!
+            if (collisionMap[y][x] === 5) {
+                map.attachEvent(x, y, this.snorlaxEvent);
             }
         }
     }
@@ -1739,21 +2017,6 @@ ScenarioManager.prototype.removeScenario = function(scenario) {
     this.scenarios.shift();
 
     this.scenariosTicks.shift();
-    // let index = -1;
-
-    // console.log(this.scenarios[0].toString());
-
-    // for (let i = 0; i < this.scenarios.length; i++) {
-    //     if (this.scenarios[i].toString() === scenario.toString()) {
-    //         index = i;
-    //         break;
-    //     }
-    // }
-    // // let index = this.scenarios.indexOf(scenario);
-    // console.log(index);
-    // this.scenarios.splice(index, 1);
-
-    // this.scenariosTicks.splice(index, 1);
 }
 
 ScenarioManager.prototype.update = function() {
@@ -1764,9 +2027,7 @@ ScenarioManager.prototype.update = function() {
     }
 }
 
-// ScenarioManager.prototype.render = function() {
-
-// }
+// ScenarioManager.prototype.render = function() {}
 
 module.exports = ScenarioManager;
 
@@ -1885,9 +2146,6 @@ Tile.prototype.render = function(context, rX, rY) {
         return;
     }
 
-    // mapX = mapX ? mapX : this.service.map.x;
-    // mapY = mapY ? mapY : this.service.map.y;
-
     rX = rX ? rX : 0;
     rY = rY ? rY : 0;
 
@@ -1899,14 +2157,11 @@ Tile.prototype.render = function(context, rX, rY) {
     context.globalAlpha = this.alpha;
 
     context.drawImage(
-        // this.image ? this.image : this.placeholderImage,
         this.image,
         xInImage,
         yInImage,
         this.tileWidth,
         this.tileHeight,
-        // mapX + this.renderX,
-        // mapY + this.renderY,
         rX + this.renderX,
         rY + this.renderY,
         this.renderWidth,
@@ -1978,6 +2233,8 @@ module.exports=[
     {
         "id": 1,
         "name": "BULBASAUR",
+        "maxHP": 13,
+        "strength": 3,
         "tileFront": {
             "src": "img/monsters/001_bulbasaur_front.png",
             "tileWidth": 38,
@@ -2020,6 +2277,8 @@ module.exports=[
     {
         "id": 93,
         "name": "HAUNTER",
+        "maxHP": 12,
+        "strength": 4,
         "tileFront": {
             "src": "img/monsters/093_haunter_front.png",
             "tileWidth": 85,
@@ -2048,6 +2307,8 @@ module.exports=[
     {
         "id": 130,
         "name": "GYARADOS",
+        "maxHP": 13,
+        "strength": 4,
         "tileFront": {
             "src": "img/monsters/130_gyarados_front.png",
             "tileWidth": 102,
@@ -2072,14 +2333,45 @@ module.exports=[
             "pause": true
         },
         "crySrc": "audio/monster/130Cry.wav"
+    },
+    {
+        "id": 143,
+        "name": "SNORLAX",
+        "maxHP": 17,
+        "strength": 7,
+        "tileFront": {
+            "src": "img/monsters/143_snorlax_front.png",
+            "tileWidth": 75,
+            "tileHeight": 75,
+            "renderY": 30,
+            "renderWidth": 350,
+            "renderHeight": 350,
+            "numberOfFrames": 173,
+            "updateFrequency": 1,
+            "loop": false,
+            "pause": true
+        },
+        "tileBack": {
+            "src": "img/monsters/143_snorlax_back.png",
+            "tileWidth": 75,
+            "tileHeight": 75,
+            "renderWidth": 350,
+            "renderHeight": 350,
+            "numberOfFrames": 173,
+            "updateFrequency": 1,
+            "loop": false,
+            "pause": true
+        },
+        "crySrc": "audio/monster/143Cry.wav"
     }
 ]
+
 },{}],14:[function(require,module,exports){
 module.exports={
     "monsters": [
         {
             "name": "GYARADOS",
-            "level": 100
+            "level": 1
         }
     ]
 }
@@ -2278,6 +2570,18 @@ module.exports=[
         "src": "img/battle/backBtn.png",
         "tileWidth": 120,
         "tileHeight": 88
+    },
+    {
+        "name": "battlePlayerBox",
+        "src": "img/battle/battlePlayerBox.png",
+        "tileWidth": 262,
+        "tileHeight": 62
+    },
+    {
+        "name": "battleOpponentBox",
+        "src": "img/battle/battleOpponentBox.png",
+        "tileWidth": 262,
+        "tileHeight": 62
     }
 ]
 
