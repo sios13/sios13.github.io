@@ -170,12 +170,7 @@ Battle.prototype._scenarioBattleIntroPart1 = function(tick) {
 
         this.opponentBoxTile.alpha = 1;
 
-        if (this.type === "snorlax") {
-            this.conversation.enqueue("Snorlax is+blocking the road...", undefined);
-            this.conversation.enqueue("Kill him!!+", undefined);
-        } else {
-            this.conversation.enqueue("Wild " + this.opponentMonster.name + " appeared!+", undefined);
-        }
+        this.conversation.enqueue("Wild " + this.opponentMonster.name + " appeared!+", undefined);
         this.conversation.next();
 
         this.service.ScenarioManager.removeScenario(this._scenarioBattleIntroPart1);
@@ -367,7 +362,7 @@ Battle.prototype._scenarioPlayerMonsterFaint = function(tick) {
 
     if (tick === 30) {
         // Game over :(
-        this.conversation.enqueue("Game over! :'(+" + this.playerMonster.name + " is now lvl " + (this.playerMonster.level - 1) + ".", function() {            
+        this.conversation.enqueue("Noooooooooo!!+" + this.playerMonster.name + " is now lvl " + (this.playerMonster.level - 1) + ".", function() {            
             // Update player monster level and maxhp (for visual!)
             if (this.playerMonster.level > 1) {
                 this.playerMonster.level -= 1;
@@ -465,8 +460,12 @@ Battle.prototype._scenarioOpponentMonsterFaint = function(tick) {
             this.service.map.collisionMap[32][50] = function() {this.service.coolguy.setState("walking")};
             this.service.map.collisionMap[33][50] = function() {this.service.coolguy.setState("walking")};
 
-            this.conversation.enqueue("Congratulations!+Snorlax has been defeated!", undefined);
-            this.conversation.enqueue("Thanks for playing :)+", undefined);
+            this.service.conversation.enqueue("Congratulations!+Snorlax has been defeated!", function() {
+                this.service.coolguy.stop = true;
+                this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/SlotsBigWin.mp3").play();
+            }.bind(this));
+            this.service.conversation.enqueue("Thanks for playing :)+", undefined);
+            this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
         }
 
         this.conversation.enqueue("+", function() {
@@ -484,6 +483,10 @@ Battle.prototype._scenarioOpponentMonsterFaint = function(tick) {
                         this.service.playAudio(this.service.map.audio);
 
                         this.service.coolguy.stop = false;
+
+                        if (this.service.battle.type === "snorlax") {
+                            this.service.conversation.next();
+                        }
                     }
                 );
             });
@@ -573,6 +576,13 @@ Battle.prototype._commandState = function() {
                     this.state = "command";
                 }.bind(this));
             } else {
+                if (this.type === "snorlax") {
+                    this.service.coolguy.x = 60 * 32;
+                    this.service.coolguy.y = 32 * 32;
+
+                    this.service.coolguy.direction = 3;
+                }
+
                 this.conversation.enqueue("Got away safely!+", undefined);
                 this.conversation.enqueue("+", function() {
                     this.service.events.push(function() {
@@ -805,8 +815,9 @@ function Conversation(service, settings) {
     if (settings.state === "battle") {
         this.backgroundTile = this.service.resources.getTile("conversationBattleBg", 0, 768 - 192, 1024, 192);
     } else {
-        this.backgroundTile = this.service.resources.getTile("conversationBg", 0, 768 - 192, 1024, 192);
+        this.backgroundTile = this.service.resources.getTile("conversationBg", 2, 768 - 185, 1022, 179);
     }
+    console.log(this.backgroundTile);
 
     this.arrowTile = this.service.resources.getTile("conversationArrow", 880, 768 - 192 + 50, 56, 80);
     this.arrowTile.alpha = 0;
@@ -898,10 +909,16 @@ Conversation.prototype.update = function() {
     // If clicked at conversation bar
     if (this.nextable === true && this.service.listeners.click && this.backgroundTile.pointerInside()) {
         this.next();
+
+        this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/Choose.wav").play();
     }
 }
 
 Conversation.prototype.render = function(context) {
+    if (this.texts[0] === "+") {
+        return;
+    }
+
     this.backgroundTile.render(context);
 
     this.arrowTile.render(context);
@@ -1091,7 +1108,7 @@ Entity.prototype.update = function() {
 
     this.activeTile = this.activeTiles[this.direction];
 
-    if (this.service.listeners.mousedown)
+    if (this.service.listeners.mousedown && this.stop === false)
     {
         // Use the mouse position to determine the entity speed (speedX speedY)
         this._setSpeed();
@@ -1102,11 +1119,6 @@ Entity.prototype.update = function() {
         // Detect collision.
         // If collision is detected -> set the speed to 0
         this._detectCollision();
-
-        if (this.stop === true) {
-            this.speedX = 0;
-            this.speedY = 0;
-        }
 
         // Finally, add the speed to the position
         this.x += this.speedX;
@@ -1151,6 +1163,7 @@ const Entity = require("./Entity.js");
 const MapManager = require("./MapManager.js");
 const Battle = require("./Battle.js");
 const Loader = require("./Loader.js");
+const Conversation = require("./Conversation.js");
 const ScenarioManager = require("./ScenarioManager.js");
 
 Function.prototype.bindArgs = function(...boundArgs)
@@ -1180,8 +1193,6 @@ function Game() {
 
     this.service.events = [];
 
-    this.service.ScenarioManager = new ScenarioManager(this.service, {});
-
     // Load resources to service.resouces
     this.loader = new Loader(this.service, {});
     // Initialize world state
@@ -1195,6 +1206,8 @@ function Game() {
 
                 this.service.map = this.service.mapManager.getMap("startMap");
 
+                this.service.conversation = new Conversation(this.service, {});
+
                 this.service.state = "world";
             },
             function() {
@@ -1204,6 +1217,8 @@ function Game() {
             }
         );
     });
+
+    this.service.ScenarioManager = new ScenarioManager(this.service, {});
 
     // Loading properties
     this.service.loadCanvas = document.querySelector(".loadCanvas");
@@ -1267,6 +1282,8 @@ Game.prototype.update = function() {
 
         // Update map
         this.service.map.update();
+
+        this.service.conversation.update();
     }
 
     this.service.ScenarioManager.update();
@@ -1305,6 +1322,8 @@ Game.prototype.render = function() {
         this.service.coolguy.render();
 
         this.service.map.renderLayer2();
+
+        this.service.conversation.render(context);
     }
 }
 
@@ -1329,7 +1348,7 @@ Game.prototype.checkEvents = function() {
 
 module.exports = Game;
 
-},{"./Battle.js":1,"./Entity.js":3,"./InitializeService.js":5,"./Loader.js":6,"./MapManager.js":8,"./ScenarioManager.js":9,"./listeners.js":12,"./resources/savefile.json":14}],5:[function(require,module,exports){
+},{"./Battle.js":1,"./Conversation.js":2,"./Entity.js":3,"./InitializeService.js":5,"./Loader.js":6,"./MapManager.js":8,"./ScenarioManager.js":9,"./listeners.js":12,"./resources/savefile.json":14}],5:[function(require,module,exports){
 module.exports = function() {
     let service = {};
 
@@ -1587,13 +1606,20 @@ Loader.prototype._loadAudios = function() {
         "audio/music1.mp3",
         "audio/music2.mp3",
         "audio/pkmn-fajt.mp3",
+        "audio/pokecenter.ogg",
+        "audio/pokecenter_heal.ogg",
         "audio/normaldamage.wav",
         "audio/faint.wav",
         "audio/Refresh.mp3",
         "audio/expfull.wav",
         "audio/Flee.wav",
         "audio/OpenPokeball.wav",
-        "audio/decrease.wav"
+        "audio/decrease.wav",
+        "audio/SlotsBigWin.mp3",
+        "audio/Choose.wav",
+        "audio/monsterroar.mp3",
+        "audio/EnteringDoor.wav",
+        "audio/ExitDoor.wav"
     ];
 
     // Make an audio element for every audio src
@@ -1834,29 +1860,37 @@ function MapManager(service, {}) {
         this.service.coolguy.setState("water");
     };
     this.grassEvent = function(type) {
-        this.service.coolguy.setState("grass");
-
         if (type === "snorlax") {
-            let monsterLevel = 10;
+            this.service.conversation.enqueue("An angry SNORLAX+blocks the way!", function() {this.service.coolguy.stop = true;}.bind(this));
+            this.service.conversation.enqueue("Snorlax is very angry!!+", undefined);
+            this.service.conversation.enqueue("SNORLAX: AAAARGGGGGHHHH!!+", function() {
+                this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/monsterroar.mp3").play();
+            }.bind(this));
+            this.service.conversation.enqueue("+", function() {
+                let monsterLevel = 10;
 
-            snorlax = this.service.resources.getMonster(4);
-            snorlax.maxHP = 35;
-            snorlax.strength = 5;
+                snorlax = this.service.resources.getMonster(4);
+                snorlax.maxHP = 35;
+                snorlax.strength = 5;
 
-            this.service.battle = new Battle(this.service, {opponent: snorlax, opponentLevel: monsterLevel, type: "snorlax"});
+                this.service.battle = new Battle(this.service, {opponent: snorlax, opponentLevel: monsterLevel, type: "snorlax"});
 
-            // Switch state
-            this.service.state = "battle";
+                // Switch state
+                this.service.state = "battle";
 
-            this.service.map.audio.pause();
-            this.service.map.audio.volume = 0;
+                this.service.map.audio.pause();
+                this.service.map.audio.volume = 0;
 
-            this.service.worldCanvas.style.zIndex = -1;
-            this.service.battleCanvas.style.zIndex = 1;
+                this.service.worldCanvas.style.zIndex = -1;
+                this.service.battleCanvas.style.zIndex = 1;
+            }.bind(this));
+            this.service.conversation.next();
         } else {
+            this.service.coolguy.setState("grass");
+
             // if (true) {
             // if (false) {
-            if (Math.floor(Math.random() * 8) % 8 === 0) {
+            if (Math.floor(Math.random() * 10) % 10 === 0) {
             // if (this.service.tick % 10 === 0) {
                 // Get a "random" mosnter
                 let min = 0;
@@ -1894,6 +1928,12 @@ function MapManager(service, {}) {
                 this.service.pauseAudio(this.service.map.audio);
 
                 this.service.coolguy.stop = true;
+
+                if (newMapName === "startMap") {
+                    this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/ExitDoor.wav").play();
+                } else {
+                    this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/EnteringDoor.wav").play();
+                }
             },
             function() {
                 this.service.map = this.service.mapManager.getMap(newMapName);
@@ -1978,7 +2018,7 @@ MapManager.prototype.createStartMap = function() {
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,0,0,0,7,7,2,2,2,2,2,2,1,1,1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,1,13,1,1,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,1,8,1,1,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,25,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -1998,7 +2038,7 @@ MapManager.prototype.createStartMap = function() {
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,3,3,0,0,1,1,1,1,1,1,1,3,3,3,3,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,1,3,3,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,24,0,0,0,0,0,1,1,3,3,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,3,3,3,3,3,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,3,3,3,3,3,3,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,3,3,3,3,3,3,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -2017,16 +2057,16 @@ MapManager.prototype.createStartMap = function() {
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,1,1,0,0,0,0,0,0,1,1,1,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,10,1,0,0,0,0,0,0,1,11,1,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,1,1,1,10,1,22,0,0,0,0,23,1,11,1,1,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,20,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+        [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,21,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
         [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,2,2,2,2,2,2,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
@@ -2057,29 +2097,7 @@ MapManager.prototype.createStartMap = function() {
 
     let snorlaxTile = this.service.resources.getTile("snorlax", 48*32, 31*32, 96, 96);
 
-    // snorlaxTile.pause = false;
-    // snorlaxTile.loop = true;
-    // snorlaxTile.renderX = 48*32;
-    // snorlaxTile.renderY = 31*32;
-    // snorlaxTile.renderWidth = 96;
-    // snorlaxTile.renderHeight = 96;
     let tiles = [
-        // this.service.resources.getTile("grass", 8*32, 30*29, 32, 32),
-        // this.service.resources.getTile("grass", 9*32, 30*29, 32, 32),
-        // this.service.resources.getTile("grass", 10*32, 30*29, 32, 32),
-        // this.service.resources.getTile("grass", 11*32, 30*29, 32, 32),
-        // this.service.resources.getTile("grass", 8*32, 31*29, 32, 32),
-        // this.service.resources.getTile("grass", 9*32, 31*29, 32, 32),
-        // this.service.resources.getTile("grass", 10*32, 31*29, 32, 32),
-        // this.service.resources.getTile("grass", 11*32, 31*29, 32, 32),
-        // this.service.resources.getTile("grass", 8*32, 32*29, 32, 32),
-        // this.service.resources.getTile("grass", 9*32, 32*29, 32, 32),
-        // this.service.resources.getTile("grass", 10*32, 32*29, 32, 32),
-        // this.service.resources.getTile("grass", 11*32, 32*29, 32, 32),
-        // this.service.resources.getTile("grass", 9*32, 33*29, 32, 32),
-        // this.service.resources.getTile("grass", 10*32, 33*29, 32, 32),
-        // this.service.resources.getTile("grass", 11*32, 33*29, 32, 32),
-
         this.service.resources.getTile("sea(0,2)", 58*32, 82*32, 32, 32),
         this.service.resources.getTile("sea(1,2)", 59*32, 82*32, 32, 32),
         this.service.resources.getTile("sea(2,2)", 60*32, 82*32, 32, 32),
@@ -2238,6 +2256,62 @@ MapManager.prototype.createStartMap = function() {
             if (collisionMap[y][x] === 14) {
                 map.attachEvent(x, y, this.newMapEvent.bindArgs("pokecenter", 8, 9));
             }
+
+            // Conversation!
+            if (collisionMap[y][x] === 20) {
+                map.attachEvent(x, y, function() {
+                    this.service.conversation.enqueue("Welcome to the+world of MONSTERS!", function() {this.service.coolguy.stop = true;}.bind(this));
+                    this.service.conversation.enqueue("Enjoy! :)+", undefined);
+                    this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
+                    this.service.conversation.next();
+                });
+            }
+
+            // Conversation!
+            if (collisionMap[y][x] === 21) {
+                map.attachEvent(x, y, function() {
+                    this.service.conversation.enqueue("This house is amazing!+", function() {this.service.coolguy.stop = true;}.bind(this));
+                    this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
+                    this.service.conversation.next();
+                });
+            }
+
+            // Conversation!
+            if (collisionMap[y][x] === 22) {
+                map.attachEvent(x, y, function() {
+                    this.service.conversation.enqueue("Welcome!+", function() {this.service.coolguy.stop = true;}.bind(this));
+                    this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
+                    this.service.conversation.next();
+                });
+            }
+
+            // Conversation!
+            if (collisionMap[y][x] === 23) {
+                map.attachEvent(x, y, function() {
+                    this.service.conversation.enqueue("Hello!+", function() {this.service.coolguy.stop = true;}.bind(this));
+                    this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
+                    this.service.conversation.next();
+                });
+            }
+
+            // Conversation!
+            if (collisionMap[y][x] === 24) {
+                map.attachEvent(x, y, function() {
+                    this.service.conversation.enqueue("There are many+scary MONSTERS here!", function() {this.service.coolguy.stop = true;}.bind(this));
+                    this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
+                    this.service.conversation.next();
+                });
+            }
+
+            // Conversation!
+            if (collisionMap[y][x] === 25) {
+                map.attachEvent(x, y, function() {
+                    this.service.conversation.enqueue("This town seems+completely abandoned.", function() {this.service.coolguy.stop = true;}.bind(this));
+                    this.service.conversation.enqueue("I wonder why...+", function() {this.service.coolguy.stop = true;}.bind(this));
+                    this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
+                    this.service.conversation.next();
+                });
+            }
         }
     }
 
@@ -2307,10 +2381,10 @@ MapManager.prototype.createPokecenterMap = function() {
         [1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1],
         [1,1,1,1,1,1,0,0,0,0,1,0,0,0,1,1],
         [1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,1],
-        [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,0,0,0,0,0,0,3,0,0,0,0,0,0,1],
         [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
         [1,1,1,0,0,0,0,0,0,0,0,0,1,1,0,1],
-        [1,0,0,0,0,0,0,0,0,0,0,0,1,1,0,1],
+        [1,0,0,0,4,0,0,0,0,0,0,0,1,1,0,1],
         [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
         [1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1],
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
@@ -2320,7 +2394,7 @@ MapManager.prototype.createPokecenterMap = function() {
 
     let layer2Tile = this.service.resources.getTile("pokecenter_layer2", 0, 0, 3200, 3200);
 
-    let audio = this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/music2.mp3");
+    let audio = this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/pokecenter.ogg");
 
     let tiles = [];
 
@@ -2344,6 +2418,45 @@ MapManager.prototype.createPokecenterMap = function() {
             // Teleport!
             if (collisionMap[y][x] === 2) {
                 map.attachEvent(x, y, this.newMapEvent.bindArgs("startMap", 56, 39));
+            }
+
+            // Heal!
+            if (collisionMap[y][x] === 3) {
+                map.attachEvent(x, y, function() {
+                    this.service.conversation.enqueue("We've restored your+MONSTERS to full health.", function() {
+                        this.service.coolguy.stop = true;
+
+                        this.service.save.monsters[0].HP = this.service.save.monsters[0].maxHP;
+
+                        this.service.pauseAudio(this.service.map.audio);
+                        this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/pokecenter_heal.ogg").play();
+                    }.bind(this));
+                    this.service.conversation.enqueue("+", function() {
+                        this.service.coolguy.stop = false;
+                        this.service.map.audio.volume = 0;
+                        this.service.playAudio(this.service.map.audio);
+                    }.bind(this));
+                    this.service.conversation.next();
+                });
+            }
+
+            // Conversation!
+            if (collisionMap[y][x] === 4) {
+                map.attachEvent(x, y, function() {
+                    // this.service.conversation.enqueue("", undefined);
+                    this.service.conversation.enqueue("\"He has taken the bridge...\"+", function() {this.service.coolguy.stop = true;}.bind(this));
+                    this.service.conversation.enqueue("\"and the second hall.\"+", undefined);
+                    this.service.conversation.enqueue("\"We have+barred the gates...\"", undefined);
+                    this.service.conversation.enqueue("\"but cannot hold+him for long.\"", undefined);
+                    this.service.conversation.enqueue("\"The ground shakes.\"+", undefined);
+                    this.service.conversation.enqueue("\"Drums...+Drums... in the deep.\"", undefined);
+                    this.service.conversation.enqueue("\"We cannot get out.\"+", undefined);
+                    this.service.conversation.enqueue("\"A shadow+moves in the dark.\"", undefined);
+                    this.service.conversation.enqueue("\"We cannot get out...\"+", undefined);
+                    this.service.conversation.enqueue("\"He is coming!\"+", undefined);
+                    this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
+                    this.service.conversation.next();
+                });
             }
         }
     }
@@ -3154,8 +3267,8 @@ module.exports=[
     {
         "name": "conversationBg",
         "src": "img/conversation/background_normal.png",
-        "tileWidth": 512,
-        "tileHeight": 96
+        "tileWidth": 1028,
+        "tileHeight": 179
     },
     {
         "name": "conversationBattleBg",
