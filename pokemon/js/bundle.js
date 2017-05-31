@@ -19,6 +19,7 @@ function Battle(service, settings) {
         }
     }
     this.playerMonster = this.service.resources.getMonster(index);
+    this.playerMonster.maxHP = 16;
     this.playerMonster.strength = 7;
 
     // Read from save file
@@ -380,11 +381,12 @@ Battle.prototype._scenarioPlayerMonsterFaint = function(tick) {
             // Player decrease sound!
             this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/decrease.wav").play();
 
-            // Set character position
-            if (this.type === "snorlax") {
-                this.service.coolguy.x = 50 * 32;
-                this.service.coolguy.y = 42 * 32;
-            }
+            // // Set character position
+            // if (this.type === "snorlax") {
+            //     console.log("hej!");
+            //     this.service.coolguy.x = 40 * 32;
+            //     this.service.coolguy.y = 52 * 32;
+            // }
             
             this.service.coolguy.direction = 3;
         }.bind(this));
@@ -464,10 +466,18 @@ Battle.prototype._scenarioOpponentMonsterFaint = function(tick) {
 
             this.service.conversation.enqueue("Congratulations!+Snorlax has been defeated!", function() {
                 this.service.coolguy.stop = true;
-                this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/SlotsBigWin.mp3").play();
+                this.service.pauseAudio(this.service.map.audio);
+                setTimeout(function() {
+                    this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/SlotsBigWin.mp3").play();
+                }.bind(this), 200);
+                setTimeout(function() {
+                    this.service.conversation.enqueue("Thanks for playing :)+", function() {
+                        this.service.map.audio.volume = 0;
+                        this.service.playAudio(this.service.map.audio);
+                    }.bind(this));
+                    this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
+                }.bind(this), 4000);
             }.bind(this));
-            this.service.conversation.enqueue("Thanks for playing :)+", undefined);
-            this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
         }
 
         if (this.type === "gyarados") {
@@ -593,8 +603,8 @@ Battle.prototype._commandState = function() {
                 }.bind(this));
             } else {
                 if (this.type === "snorlax") {
-                    this.service.coolguy.x = 60 * 32;
-                    this.service.coolguy.y = 32 * 32;
+                    this.service.coolguy.x = 50 * 32;
+                    this.service.coolguy.y = 42 * 32;
 
                     this.service.coolguy.direction = 3;
                 }
@@ -951,7 +961,7 @@ Conversation.prototype.render = function(context) {
     context.shadowColor = "rgba(0,0,0,0.2)";
     context.shadowOffsetX = 5;
     context.shadowOffsetY = 3;
-    // context.shadowBlur = 3;
+    context.shadowBlur = 3;
 
     context.fillText(this.line1, 70, 662);
 
@@ -1105,6 +1115,8 @@ Entity.prototype._detectCollision = function() {
             if (newRow !== oldRow) {
                 this.speedY = 0;
             }
+
+            this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/bump.mp3").play();            
         }
     }
 }
@@ -1648,7 +1660,9 @@ Loader.prototype._loadAudios = function() {
         "audio/monsterroar.mp3",
         // "audio/EnteringDoor.wav",
         "audio/ExitDoor.wav",
-        "audio/lvlup.ogg"
+        "audio/lvlup.ogg",
+        "audio/pokemart.ogg",
+        "audio/bump.mp3"
     ];
 
     // Make an audio element for every audio src
@@ -1899,7 +1913,7 @@ function MapManager(service, {}) {
             this.service.conversation.enqueue("+", function() {
                 let monsterLevel = 10;
 
-                let snorlax = this.service.resources.getMonster(4);
+                let snorlax = this.service.resources.getMonster(5);
                 snorlax.maxHP = 35;
                 snorlax.strength = 5;
 
@@ -1916,9 +1930,9 @@ function MapManager(service, {}) {
             }.bind(this));
             this.service.conversation.next();
         } else if (type === "gyarados") {
-            this.service.conversation.enqueue("GYARADOS: Hello!+", function() {this.service.coolguy.stop = true;}.bind(this));
+            this.service.conversation.enqueue("GYARADOS: Gyashaa!+", function() {this.service.coolguy.stop = true;}.bind(this));
             this.service.conversation.enqueue("+", function() {
-                let gyarados = this.service.resources.getMonster(3);
+                let gyarados = this.service.resources.getMonster(4);
 
                 this.service.battle = new Battle(this.service, {opponent: gyarados, opponentLevel: 8, type: "gyarados"});
 
@@ -1944,7 +1958,7 @@ function MapManager(service, {}) {
                 let max = this.service.resources.monsters.length;
                 let monster = this.service.resources.getMonster(Math.floor(Math.random() * (max - min)) + min);
 
-                // Set mosnter level depending on type
+                // Set monster level depending on type
                 let monsterLevel;
 
                 if (type === "easy") {
@@ -2420,8 +2434,7 @@ MapManager.prototype.createStartMap = function() {
             // Conversation!
             if (collisionMap[y][x] === 28) {
                 map.attachEvent(x, y, function() {
-                    this.service.conversation.enqueue("Heeeeeeey!+", function() {this.service.coolguy.stop = true;}.bind(this));
-                    this.service.conversation.enqueue("Yaaaaaaaaaaay!+", undefined);
+                    this.service.conversation.enqueue("CAUTION!+No swimming!", function() {this.service.coolguy.stop = true;}.bind(this));
                     this.service.conversation.enqueue("+", function() {this.service.coolguy.stop = false;}.bind(this));
                     this.service.conversation.next();
                 });
@@ -2463,7 +2476,7 @@ MapManager.prototype.createPokemartMap = function() {
 
     let layer2Tile = this.service.resources.getTile("pokemart_layer2", 0, 0, 3200, 3200);
 
-    let audio = this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/music2.mp3");
+    let audio = this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/pokemart.ogg");
 
     let tiles = [];
 
@@ -2502,7 +2515,7 @@ MapManager.prototype.createPokecenterMap = function() {
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
         [1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1],
         [1,1,1,1,1,1,0,0,0,0,1,1,1,1,1,1],
-        [1,1,1,1,1,1,0,0,0,0,1,0,0,0,1,1],
+        [1,1,0,0,0,1,0,0,0,0,1,0,0,0,1,1],
         [1,0,0,0,0,1,1,1,1,1,1,0,0,0,0,1],
         [1,0,0,0,0,0,0,0,3,0,0,0,0,0,0,1],
         [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
@@ -2546,20 +2559,23 @@ MapManager.prototype.createPokecenterMap = function() {
             // Heal!
             if (collisionMap[y][x] === 3) {
                 map.attachEvent(x, y, function() {
-                    this.service.conversation.enqueue("We've restored your+MONSTERS to full health.", function() {
+                    this.service.conversation.enqueue("Welcome to our MONSTER CENTER!+", function() {
                         this.service.coolguy.stop = true;
-
+                    }.bind(this));
+                    this.service.conversation.enqueue("We've restored your+MONSTERS to full health.", function() {
                         this.service.save.monsters[0].HP = this.service.save.monsters[0].maxHP;
 
                         this.service.pauseAudio(this.service.map.audio);
                         setTimeout(function() {
                             this.service.resources.audios.find(audio => audio.getAttribute("src") === "audio/pokecenter_heal.ogg").play();
-                        }.bind(this), 100);
-                    }.bind(this));
-                    this.service.conversation.enqueue("+", function() {
-                        this.service.coolguy.stop = false;
-                        this.service.map.audio.volume = 0;
-                        this.service.playAudio(this.service.map.audio);
+                        }.bind(this), 200);
+                        setTimeout(function() {                            
+                            this.service.conversation.enqueue("+", function() {
+                                this.service.coolguy.stop = false;
+                                this.service.map.audio.volume = 0;
+                                this.service.playAudio(this.service.map.audio);
+                            }.bind(this));
+                        }.bind(this), 3000);
                     }.bind(this));
                     this.service.conversation.next();
                 });
@@ -3108,26 +3124,42 @@ module.exports=[
             "loop": false,
             "pause": true
         },
-        "crySrc": "audio/monster/001Cry.wav",
-        "moves": [
-            {
-                "name": "Tackle1"
-            },
-            {
-                "name": "Tackle2"
-            },
-            {
-                "name": "Tackle3"
-            },
-            {
-                "name": "Tackle4"
-            }
-        ]
+        "crySrc": "audio/monster/001Cry.wav"
+    },
+    {
+        "id": 2,
+        "name": "IVYSAUR",
+        "maxHP": 16,
+        "strength": 4,
+        "tileFront": {
+            "src": "img/monsters/002_ivysaur_front.png",
+            "tileWidth": 58,
+            "tileHeight": 58,
+            "renderY": 100,
+            "renderWidth": 200,
+            "renderHeight": 200,
+            "numberOfFrames": 111,
+            "updateFrequency": 1,
+            "loop": false,
+            "pause": true
+        },
+        "tileBack": {
+            "src": "img/monsters/002_ivysaur_back.png",
+            "tileWidth": 57,
+            "tileHeight": 57,
+            "renderWidth": 300,
+            "renderHeight": 300,
+            "numberOfFrames": 111,
+            "updateFrequency": 1,
+            "loop": false,
+            "pause": true
+        },
+        "crySrc": "audio/monster/001Cry.wav"
     },
     {
         "id": 25,
         "name": "PIKACHU",
-        "maxHP": 16,
+        "maxHP": 15,
         "strength": 4,
         "tileFront": {
             "src": "img/monsters/025_pikachu_front.png",
